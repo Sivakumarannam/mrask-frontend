@@ -1,10 +1,13 @@
 import os
 import re
+import logging
+import smtplib
 from functools import lru_cache
 from io import BytesIO
 
 import requests
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.core.mail.message import BadHeaderError
 from pypdf import PdfReader
 from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -32,6 +35,7 @@ from .serializers import ContactMessageSerializer, ProjectSerializer
 
 GEOCODE_URL = 'https://geocoding-api.open-meteo.com/v1/search'
 FORECAST_URL = 'https://api.open-meteo.com/v1/forecast'
+logger = logging.getLogger(__name__)
 
 # WMO weather codes -> (description, emoji)
 WEATHER_CODES = {
@@ -262,9 +266,16 @@ def send_contact_email(instance):
         f'{instance.message}'
     )
     try:
-        send_mail(subject, body, from_email, [recipient], fail_silently=False)
-        return True
-    except Exception:
+        email = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=from_email,
+            to=[recipient],
+            reply_to=[instance.email],
+        )
+        return email.send(fail_silently=False) == 1
+    except (BadHeaderError, OSError, smtplib.SMTPException):
+        logger.exception('Email delivery failed for contact message %s', instance.pk)
         return False
 
 

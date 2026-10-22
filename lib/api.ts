@@ -92,7 +92,7 @@ export function sendMessage(payload: { name: string; email: string; message: str
   return request<{ detail?: string; email_sent?: boolean; name?: string; email?: string; message?: string }>('/api/contact/', {
     method: 'POST',
     body: JSON.stringify(payload),
-  });
+  }, 30000);
 }
 
 export type RagAnswer = {
