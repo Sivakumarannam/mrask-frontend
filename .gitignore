@@ -30,9 +30,18 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files — NEVER commit real secrets!
 .env
+.env.local
+.env.development
+.env.production
+.env.staging
 .env*.local
+# Also block backend env
+backend/.env
+backend/.env.*
+!backend/.env.example
+!.env.example
 
 # typescript
 *.tsbuildinfo
