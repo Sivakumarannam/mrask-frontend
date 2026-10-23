@@ -88,3 +88,18 @@ class PortfolioAPITests(TestCase):
         data = response.json()
         self.assertIn('answer', data)
         self.assertIn('chunks_used', data)
+
+    def test_health_check(self):
+        response = self.client.get('/api/health/')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'healthy')
+        self.assertEqual(data['database'], 'connected')
+
+    def test_api_docs(self):
+        response = self.client.get('/api/docs/')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('endpoints', data)
+        self.assertGreaterEqual(len(data['endpoints']), 5)
+

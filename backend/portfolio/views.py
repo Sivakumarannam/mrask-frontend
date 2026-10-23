@@ -6,9 +6,12 @@ import threading
 from functools import lru_cache
 from io import BytesIO
 
+from datetime import datetime, timezone
 import requests
+from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.mail.message import BadHeaderError
+from django.db import connection
 from pypdf import PdfReader
 from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -435,3 +438,80 @@ class RAGAskView(APIView):
             'normalized_question': question,
             'context_used': selected or chunks[:3],
         })
+
+
+class HealthCheckView(APIView):
+    throttle_classes = ()
+    permission_classes = ()
+
+    def get(self, request):
+        db_status = 'connected'
+        try:
+            connection.ensure_connection()
+        except Exception as e:
+            db_status = f'error: {str(e)}'
+
+        healthy = db_status == 'connected'
+        payload = {
+            'status': 'healthy' if healthy else 'degraded',
+            'database': db_status,
+            'database_engine': settings.DATABASES['default']['ENGINE'].split('.')[-1],
+            'smtp_configured': bool(getattr(settings, 'EMAIL_HOST_USER', None)),
+            'debug': settings.DEBUG,
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+        }
+        status_code = status.HTTP_200_OK if healthy else status.HTTP_503_SERVICE_UNAVAILABLE
+        return Response(payload, status=status_code)
+
+
+class APIDocsView(APIView):
+    throttle_classes = ()
+    permission_classes = ()
+
+    def get(self, request):
+        base = request.build_absolute_uri('/')[:-1]
+        return Response({
+            'name': 'Portfolio & AI Microservices API',
+            'version': '1.0.0',
+            'author': 'Siva Kumar Annam (Mr.A.S.K)',
+            'endpoints': [
+                {
+                    'path': f'{base}/api/health/',
+                    'method': 'GET',
+                    'description': 'Production health check verifying database and SMTP connectivity',
+                },
+                {
+                    'path': f'{base}/api/docs/',
+                    'method': 'GET',
+                    'description': 'Interactive API directory and endpoint documentation',
+                },
+                {
+                    'path': f'{base}/api/projects/',
+                    'method': 'GET',
+                    'description': 'Retrieve list of published portfolio projects',
+                },
+                {
+                    'path': f'{base}/api/projects/<slug>/',
+                    'method': 'GET',
+                    'description': 'Retrieve detailed specifications, pipeline steps, and demo links for a project',
+                },
+                {
+                    'path': f'{base}/api/contact/',
+                    'method': 'POST',
+                    'description': 'Submit contact message with honeypot protection and async email dispatch',
+                    'payload': {'name': 'string', 'email': 'string', 'message': 'string', 'website': 'optional string (honeypot)'},
+                },
+                {
+                    'path': f'{base}/api/weather/?city=<city_name>',
+                    'method': 'GET',
+                    'description': 'Fetch live weather and 5-day forecast via Open-Meteo',
+                },
+                {
+                    'path': f'{base}/api/rag/ask/',
+                    'method': 'POST (multipart)',
+                    'description': 'Upload PDF/text document and ask questions with local LLM grounded context',
+                    'payload': {'file': 'binary PDF/txt', 'question': 'string'},
+                },
+            ]
+        })
+

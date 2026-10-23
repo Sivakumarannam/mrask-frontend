@@ -1,5 +1,6 @@
-import { ActivityIndicator, Text } from 'react-native';
+import { Text } from 'react-native';
 
+import { ProjectSkeletonCard } from '@/components/Skeleton';
 import { ProjectCard } from '@/components/ProjectCard';
 import { Heading, Screen } from '@/components/ui';
 import { useTheme } from '@/constants/theme';
@@ -19,7 +20,12 @@ export default function Projects() {
           {'\u25CF  Live data from my Django + PostgreSQL API'}
         </Text>
       ) : null}
-      {loading ? <ActivityIndicator color={t.accent} style={{ marginVertical: 20 }} /> : null}
+      {loading && projects.length === 0 ? (
+        <>
+          <ProjectSkeletonCard />
+          <ProjectSkeletonCard />
+        </>
+      ) : null}
       {projects.map((p) => (
         <ProjectCard key={p.id} p={p} />
       ))}

@@ -81,40 +81,35 @@ This document provides a complete audit of the **Portfolio-Expo** project. It de
 | **3–8s Contact Form Submission Wait** | Synchronous SMTP blocking during HTTP request cycle. | Migrated to daemonized async thread execution (`send_contact_email_async`). Response time dropped to 166ms. | [backend/portfolio/views.py](file:///d:/Protifolo/portfolio-expo/backend/portfolio/views.py) |
 | **Vulnerable .env in Git** | `.gitignore` did not explicitly exclude nested `backend/.env` or multiple environment variants. | Hardened `.gitignore` and provided clean `.env.example` templates. | [.gitignore](file:///d:/Protifolo/portfolio-expo/.gitignore) |
 | **Fixed Dark-Only Theme** | Hardcoded dark colors throughout sidebar and layout components. | Implemented `ThemeContext` with dark & light palettes, persistent storage, and interactive switchers. | [constants/ThemeContext.tsx](file:///d:/Protifolo/portfolio-expo/constants/ThemeContext.tsx) |
+| **Missing Visual Architecture** | Projects were purely text-based without visual flow diagrams. | Built `ProjectArchitecture` component mapping interactive pipelines. | [components/ProjectArchitecture.tsx](file:///d:/Protifolo/portfolio-expo/components/ProjectArchitecture.tsx) |
+| **Basic Loading Spinners** | Raw `ActivityIndicator` spinners caused layout shifts during data loading. | Created pulsing `SkeletonBox`, `ProjectSkeletonCard`, and `WeatherSkeletonCard`. | [components/Skeleton.tsx](file:///d:/Protifolo/portfolio-expo/components/Skeleton.tsx) |
+| **No Health/Docs Endpoints** | Production uptime monitors and external consumers had no endpoint to verify DB/SMTP health or inspect API contracts. | Added `/api/health/` and `/api/docs/` with complete unit tests (11/11 tests pass). | [backend/portfolio/views.py](file:///d:/Protifolo/portfolio-expo/backend/portfolio/views.py) |
+| **No CI/CD Automation** | Code pushed to git without automated test verification. | Created GitHub Actions workflow running TypeScript check, web export, and Django tests. | [.github/workflows/ci.yml](file:///d:/Protifolo/portfolio-expo/.github/workflows/ci.yml) |
 
 ---
 
-## 4. What to Improve (Project Roadmap)
+## 4. What to Improve (Project Roadmap — Remaining Tasks)
+
+> [!NOTE]
+> A comprehensive milestone status report has been created in [docs/COMPLETED_AND_NEXT_STEPS.md](file:///d:/Protifolo/portfolio-expo/docs/COMPLETED_AND_NEXT_STEPS.md).
 
 ### 4.1 UI / UX Enhancements (Priority: Medium-High)
-1. **Rich Project Media & Video Walkthroughs**:
-   - Projects currently rely on text descriptions, stack chips, and live interactive demos.
-   - *Recommendation:* Add project screenshots, architecture diagrams, and short WebP / MP4 video walkthroughs for each project inside `app/project/[slug].tsx`.
-2. **Interactive PDF Viewer for RAG Demo**:
+1. **Interactive PDF Viewer for RAG Demo**:
    - On the RAG Chatbot page, allow visitors to preview the uploaded PDF in-browser side-by-side with the extracted excerpts and answers.
-3. **Skeleton Loaders**:
-   - Replace standard `ActivityIndicator` spinners with animated skeleton cards for projects and weather widgets during data fetching.
+2. **Rich Project Video Walkthroughs**:
+   - Add short WebP / MP4 video walkthroughs for each project inside `app/project/[slug].tsx`.
 
-### 4.3 AI & Backend Architecture (Priority: Medium)
+### 4.2 AI & Backend Architecture (Priority: Medium)
 1. **Streaming RAG Responses (SSE / WebSockets)**:
-   - When generating answers with Ollama / Qwen2.5, the endpoint currently waits for the full text response before returning.
-   - *Recommendation:* Stream tokens via Server-Sent Events (SSE) so users see the response generating in real-time.
-2. **Persistent Vector Store**:
-   - Currently, FAISS indexes are computed in-memory per request.
-   - *Recommendation:* Pre-index sample documents or store indexed vectors in PostgreSQL (`pgvector`) for sub-second retrieval.
-3. **Production API Health Check**:
-   - Add a `/api/health/` endpoint that checks database connectivity and SMTP readiness for uptime monitoring (e.g., UptimeRobot, Render health checks).
+   - When generating answers with Ollama / Qwen2.5, stream tokens via Server-Sent Events (SSE) so users see answers generate in real-time.
+2. **Persistent Vector Store (pgvector)**:
+   - Store indexed document vectors in PostgreSQL (`pgvector`) for sub-second persistent retrieval across restarts.
 
-### 4.4 DevOps & Deployment (Priority: Medium)
-1. **Separate Frontend & Backend Repositories**:
-   - Local Git remote previously pointed to a backend repo while containing Expo frontend code.
-   - *Recommendation:* Maintain two distinct GitHub repositories (or a structured monorepo using Turborepo) for clean continuous deployment to Vercel (frontend) and Render (backend).
-2. **Automated CI/CD Workflow**:
-   - Set up GitHub Actions to run:
-     - `npx tsc --noEmit`
-     - `expo export --platform web`
-     - `python manage.py test`
-   - Automatically prevents broken code from being pushed to production branches.
+### 4.3 DevOps & Cloud Deployment (Priority: Medium)
+1. **Production Deployment Configuration**:
+   - Deploy frontend to Vercel and backend to Render / Railway with managed PostgreSQL.
+2. **Separate Repositories / Monorepo Architecture**:
+   - Maintain clear separation for continuous deployment pipelines.
 
 ---
 

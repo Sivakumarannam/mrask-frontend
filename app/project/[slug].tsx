@@ -2,6 +2,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Image, Text, View } from 'react-native';
 
 import { Pipeline } from '@/components/Pipeline';
+import { ProjectArchitecture } from '@/components/ProjectArchitecture';
 import { RAGDemo } from '@/components/RAGDemo';
 import { WeatherDemo } from '@/components/WeatherDemo';
 import { Button, Card, Chip, Heading, Screen } from '@/components/ui';
@@ -101,6 +102,15 @@ export default function ProjectDetail() {
               <Card accent>
                 <RAGDemo />
               </Card>
+            </>
+          ) : null}
+
+          {p.demoKind ? (
+            <>
+              <Heading sub="Interactive system pipeline & component interconnections">
+                Architecture Blueprint
+              </Heading>
+              <ProjectArchitecture kind={p.demoKind} />
             </>
           ) : null}
 

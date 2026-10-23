@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Text, TextInput, View } from 'react-native';
 
 import { Button } from '@/components/ui';
+import { WeatherSkeletonCard } from '@/components/Skeleton';
 import { useTheme } from '@/constants/theme';
 import { getWeather, type Weather } from '@/lib/api';
 
@@ -66,7 +67,7 @@ export function WeatherDemo() {
         <Button label="Get weather" onPress={() => load(city)} />
       </View>
 
-      {loading ? <ActivityIndicator color={t.accent} style={{ marginVertical: 24 }} /> : null}
+      {loading ? <WeatherSkeletonCard /> : null}
 
       {error ? <Text style={{ color: '#EF4444', fontSize: 15, lineHeight: 22 }}>{error}</Text> : null}
 
