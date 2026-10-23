@@ -8,8 +8,13 @@ import { WeatherDemo } from '@/components/WeatherDemo';
 import { Button, Card, Chip, Heading, Screen } from '@/components/ui';
 import { useTheme } from '@/constants/theme';
 import { profile } from '@/data/profile';
+import { projects as defaultProjects } from '@/data/projects';
 import { openLink } from '@/lib/links';
 import { useProjects } from '@/lib/useProjects';
+
+export function generateStaticParams(): { slug: string }[] {
+  return defaultProjects.map((p) => ({ slug: p.id }));
+}
 
 export default function ProjectDetail() {
   const t = useTheme();
@@ -25,14 +30,10 @@ export default function ProjectDetail() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={{ flexDirection: 'row', marginTop: 12 }}>
         <Button
-          label={'\u2190 Back'}
+          label={'\u2190 Back to Projects'}
           variant="secondary"
           onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace('/projects');
-            }
+            router.replace('/projects');
           }}
         />
       </View>

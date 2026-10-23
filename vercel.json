@@ -7,6 +7,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/project/:slug",
+      "destination": "/project/[slug].html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
