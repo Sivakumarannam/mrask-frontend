@@ -142,11 +142,23 @@ function writeStoredMode(mode: ThemeMode) {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>(readStoredMode);
+  // Default to dark on initial render to match static pre-rendered HTML
+  const [mode, setModeState] = useState<ThemeMode>('dark');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    writeStoredMode(mode);
-  }, [mode]);
+    setMounted(true);
+    const stored = readStoredMode();
+    if (stored && stored !== 'dark') {
+      setModeState(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      writeStoredMode(mode);
+    }
+  }, [mode, mounted]);
 
   const effectiveDark =
     mode === 'dark' || (mode === 'system' && systemScheme === 'dark');
