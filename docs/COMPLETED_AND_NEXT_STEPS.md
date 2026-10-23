@@ -139,3 +139,19 @@ All features were systematically verified live in Chrome (`http://localhost:8081
 * **Theme Switching:** Verified instant transition between Dark and Light palettes with persistent memory.
 * **Test Suite:** **12 of 12 Django unit tests passing** (`python manage.py test`).
 * **TypeScript:** **0 compilation errors** (`npx tsc --noEmit`).
+* **Live Production Cloud:** Verified on Vercel (`mrask-frontend.vercel.app`) and Render (`mrask.onrender.com`).
+
+---
+
+## 5. Production Deployment Post-Mortem & Troubleshooting Reference
+
+A comprehensive, engineering-grade post-mortem and runbook has been established in:
+📄 [docs/PRODUCTION_DEPLOYMENT_POSTMORTEM_AND_RUNBOOK.md](file:///d:/Protifolo/portfolio-expo/docs/PRODUCTION_DEPLOYMENT_POSTMORTEM_AND_RUNBOOK.md)
+
+It documents all 6 live issues resolved during deployment, including:
+1. **GitHub Actions CI Pipeline Failure**: Pruned stale `backend-check` job after repository split.
+2. **Missing Static Files on Render**: Initialized `mkdir -p staticfiles` in `render.yaml` prior to `collectstatic`.
+3. **CORS Rejection**: Provided hardcoded production domain fallbacks in `settings.py`.
+4. **Expo Environment Variable Baking**: Configured `EXPO_PUBLIC_API_URL` before triggering Vercel build.
+5. **Vercel 404 NOT_FOUND on Refresh**: Implemented `generateStaticParams()` in `[slug].tsx` and configured clean SPA rewrites in `vercel.json`.
+6. **Fragile Browser Back Button**: Switched to deterministic `router.replace('/projects')`.
