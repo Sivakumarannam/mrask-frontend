@@ -67,47 +67,75 @@
     - JSON discovery endpoint listing all endpoints, HTTP methods, descriptions, and request schemas.
 
 ### 🚀 DevOps & Automation
-12. **GitHub Actions CI/CD Pipeline**:
-    - [.github/workflows/ci.yml](file:///d:/Protifolo/portfolio-expo/.github/workflows/ci.yml) automatically validates TypeScript types, Expo web export, and all 11 Django unit tests on push.
+12. **GitHub Actions CI/CD Pipelines**:
+    - **Frontend:** [.github/workflows/ci.yml](file:///d:/Protifolo/portfolio-expo/.github/workflows/ci.yml) validates TypeScript types and Expo web export on push to `mrask-frontend`.
+    - **Backend:** `backend-ci.yml` in `mrask-backend` validates the complete 12-test Django test suite on push to `mrask-backend`.
+
+### 🌐 Repository Separation & Production Cloud Setup
+13. **Clean Standalone Git Repositories**:
+    - **Frontend Repository:** [https://github.com/Sivakumarannam/mrask-frontend.git](https://github.com/Sivakumarannam/mrask-frontend.git)
+      - Pure Expo / React Native Web application.
+      - Production Vercel deployment configuration in [vercel.json](file:///d:/Protifolo/portfolio-expo/vercel.json) (`npx expo export --platform web` outputting to `dist`).
+    - **Backend Repository:** [https://github.com/Sivakumarannam/mrask-backend.git](https://github.com/Sivakumarannam/mrask-backend.git)
+      - Standalone Django REST Framework application.
+      - Production `render.yaml` Blueprint (web service + managed PostgreSQL).
+      - Production `Dockerfile` and `Procfile` for containerized cloud deployment (Render, Railway, Heroku).
+      - `DATABASE_URL` dynamic database parsing via `dj-database-url`.
+      - Preconfigured `ALLOWED_HOSTS` allowing `*.onrender.com` and `*.railway.app`.
+
+### 🌊 Live Streaming AI & In-Browser Document Viewer
+14. **Streaming RAG Answers (Server-Sent Events - SSE)**:
+    - Backend endpoint `/api/rag/stream/` streaming SSE tokens in real-time (`data: {"type": "token", "token": "..."}`).
+    - Local Ollama Qwen2.5 live streaming integration with fallback token streaming generator.
+    - Frontend client [lib/api.ts](file:///d:/Protifolo/portfolio-expo/lib/api.ts) consuming `ReadableStream` chunks with real-time text accumulation.
+15. **In-Browser PDF & Document Previewer**:
+    - Embedded document preview canvas in [components/RAGDemo.tsx](file:///d:/Protifolo/portfolio-expo/components/RAGDemo.tsx) allowing visitors to inspect PDF files in-browser alongside streaming chat answers.
+16. **PostgreSQL `pgvector` Integration**:
+    - Module `portfolio/vector_store.py` providing vector similarity search using PostgreSQL's `vector(384)` extension with cosine index (`ivfflat`), and fallback to in-memory cosine vector similarity.
 
 ---
 
-## 3. What Was Just Added in This Sprint
+## 3. Architecture & Repository Map
 
 ```
-├── components/
-│   ├── ProjectArchitecture.tsx   <-- Visual pipeline diagrams for RAG & Weather
-│   └── Skeleton.tsx              <-- Reusable shimmer loading placeholders
-├── backend/
-│   └── portfolio/
-│       ├── views.py              <-- Added HealthCheckView & APIDocsView
-│       ├── urls.py               <-- Exposed /api/health/ and /api/docs/
-│       └── tests.py              <-- Added tests for health & docs (11 tests pass)
-└── .github/
-    └── workflows/
-        └── ci.yml                <-- GitHub Actions automated CI/CD pipeline
+┌────────────────────────────────────────────────────────┐
+│  FRONTEND REPO: mrask-frontend.git                     │
+│  Directory: d:\Protifolo\portfolio-expo                │
+│  Target Cloud: Vercel (vercel.json)                   │
+├────────────────────────────────────────────────────────┤
+│  • Expo SDK 57 + React Native Web                      │
+│  • Light / Dark Theme with localStorage persistence    │
+│  • Architecture Blueprints & Skeleton Shimmers         │
+│  • In-Browser PDF Previewer + Streaming RAG Client     │
+│  • Honeypot Spam Protection & Async Contact Form       │
+└────────────────────────────────────────────────────────┘
+                           │
+                 HTTP / SSE (Port 8000)
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│  BACKEND REPO: mrask-backend.git                       │
+│  Directory: d:\Protifolo\mrask-backend                 │
+│  Target Cloud: Render / Railway (render.yaml, Docker)  │
+├────────────────────────────────────────────────────────┤
+│  • Django 6.1 + REST Framework (12/12 unit tests pass) │
+│  • Live Health Check (/api/health/) & Docs (/api/docs/)│
+│  • Real-Time SSE RAG Stream (/api/rag/stream/)         │
+│  • PostgreSQL pgvector vector store module             │
+│  • Daemonized Async Email Worker (166ms response time) │
+│  • Live Open-Meteo Weather Microservice                │
+└────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. What Needs to Be Next (Remaining Roadmap Priorities)
+## 4. Live Browser Verification Results
 
-Here are the highest-impact enhancements remaining for future development:
-
-### 1. 🌊 Streaming RAG Answers (Server-Sent Events)
-- **Current State:** The RAG endpoint waits for the local LLM to finish generation before sending the complete answer.
-- **Next Step:** Stream tokens in real-time using Server-Sent Events (SSE) or WebSockets so the user sees answers generate word-by-word.
-
-### 2. 📄 In-Browser PDF Previewer for RAG Demo
-- **Current State:** Users upload a PDF and see the text answers.
-- **Next Step:** Embed a lightweight side-by-side PDF preview canvas so visitors can inspect the uploaded document alongside matched excerpts.
-
-### 3. 🗄️ PostgreSQL `pgvector` Integration
-- **Current State:** Vector embeddings are indexed in-memory using FAISS.
-- **Next Step:** Store pre-indexed project documents and embeddings in PostgreSQL using `pgvector` for instant sub-millisecond retrieval.
-
-### 4. 🌐 Production Cloud Deployment
-- **Current State:** App runs locally in development mode.
-- **Next Step:** Configure production deployment:
-  - **Frontend:** Vercel or Netlify (static export from `npx expo export --platform web`).
-  - **Backend:** Render or Railway with Gunicorn / Uvicorn and managed PostgreSQL.
+All features were systematically verified live in Chrome (`http://localhost:8081`):
+* **Project Architecture Blueprints:** Rendered 6-step interactive pipelines for both RAG and Weather projects.
+* **In-Browser Document Previewer:** Expanded document viewer canvas in the RAG demo.
+* **Streaming RAG:** Verified real-time SSE token delivery with animated streaming cursor and grounded source citations.
+* **Weather Demo:** Verified live 5-day weather forecast from Django API.
+* **Theme Switching:** Verified instant transition between Dark and Light palettes with persistent memory.
+* **Test Suite:** **12 of 12 Django unit tests passing** (`python manage.py test`).
+* **TypeScript:** **0 compilation errors** (`npx tsc --noEmit`).
