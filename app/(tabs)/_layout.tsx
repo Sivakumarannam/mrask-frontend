@@ -2,6 +2,7 @@ import { SymbolView } from 'expo-symbols';
 import { Tabs, usePathname, useRouter } from 'expo-router';
 import { Dimensions, Image, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { AICopilot } from '@/components/AICopilot';
 import { useThemeContext } from '@/constants/theme';
 import { profile } from '@/data/profile';
 import { openGmail, openLink } from '@/lib/links';
@@ -167,6 +168,7 @@ export default function TabLayout() {
             <Tabs.Screen name="contact" options={{ title: 'Contact' }} />
           </Tabs>
         </View>
+        <AICopilot />
       </View>
     );
   }
@@ -310,6 +312,7 @@ export default function TabLayout() {
           <Tabs.Screen name="contact" options={{ title: 'Contact' }} />
         </Tabs>
       </View>
+      <AICopilot />
     </View>
   );
 }

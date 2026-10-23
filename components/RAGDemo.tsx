@@ -1,56 +1,156 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Platform, Pressable, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
-import { Button, Chip } from '@/components/ui';
+import { Button, Card, Chip } from '@/components/ui';
 import { useTheme } from '@/constants/theme';
 import { streamRagQuestion } from '@/lib/api';
 
-const sampleDocumentText = `
-Siva Kumar Annam (Mr.A.S.K) is a full-stack engineer and AI developer.
-Core competencies include React Native, Expo, Django REST Framework, PostgreSQL, and Python.
-The portfolio features an on-premise RAG Chatbot that ingests PDF documents, splits text into 500-token chunks,
-generates embeddings using Sentence-Transformers, indexes dense vectors in FAISS, and uses local Ollama Qwen2.5 for grounded Q&A.
-This guarantees 100% privacy with zero data leakage to cloud providers.
-`.trim();
+type DocumentPreset = {
+  id: 'profile' | 'rag_spec' | 'weather_spec' | 'custom';
+  name: string;
+  badge: string;
+  text: string;
+  exampleQuestions: string[];
+};
 
-const examplePrompts = [
-  'Summarize this document and list key points.',
-  'What are the core technical skills mentioned?',
-  'How does the RAG pipeline protect privacy?',
-  'Give me a 3-point summary of this file.',
+const DOCUMENT_PRESETS: DocumentPreset[] = [
+  {
+    id: 'profile',
+    name: 'Siva Kumar Annam (CV & Profile)',
+    badge: '📄 Resume Spec',
+    text: `
+Siva Kumar Annam (known professionally as Mr.A.S.K) is a Full-Stack Developer and AI Systems Engineer from Andhra Pradesh, India.
+Core Competencies:
+- Frontend: React Native (Expo SDK 57), React Native Web, TypeScript, JavaScript (ES6+), HTML5, CSS3, Bootstrap, glassmorphism UI.
+- Backend: Python, Django 6.1, Django REST Framework, PostgreSQL with pgvector, SQLite, Gunicorn, WhiteNoise.
+- AI & LLM Engineering: Retrieval-Augmented Generation (RAG), Ollama (Qwen2.5 local inference), Sentence-Transformers (all-MiniLM-L6-v2), FAISS dense vector search, PostgreSQL pgvector cosine similarity, real-time SSE token streaming, PyPDF semantic chunking.
+- DevOps: Docker containerization, Render Cloud, Vercel edge deployment, GitHub Actions CI/CD automation pipelines.
+Experience & Achievements:
+- Designed and engineered on-premise RAG Chatbot that ingests PDF documents, splits text into 500-token chunks, and retrieves context via FAISS with local Ollama Qwen2.5 reasoning. 100% data privacy with zero cloud leak.
+- Engineered live Weather App microservice with Django REST and Open-Meteo geocoding APIs.
+- Slashed contact form email delivery latency from 3-8s down to 166ms using daemonized async worker threads.
+- Deployed full-stack applications with 14 automated unit tests and zero-downtime CI/CD.
+Contact & Links:
+- Email: sivakumarannam143@gmail.com
+- GitHub: https://github.com/Sivakumarannam
+- LinkedIn: https://www.linkedin.com/in/siva-kumar-annam-5b0368203/
+`.trim(),
+    exampleQuestions: [
+      'Summarize Siva Kumar\'s background and core competencies.',
+      'What are his key achievements in AI and Python?',
+      'How does his RAG chatbot guarantee data privacy?',
+      'What is his contact info and availability?',
+    ],
+  },
+  {
+    id: 'rag_spec',
+    name: 'RAG & Vector Architecture Spec',
+    badge: '⚙️ Architecture',
+    text: `
+Technical Specification: On-Premise RAG System Architecture
+1. Ingestion Pipeline:
+   - Accepts PDF, DOCX, and TXT files via multipart HTTP POST.
+   - Text extraction executed using pypdf with whitespace cleaning and header removal.
+2. Semantic Chunking:
+   - Splits extracted text into 500-token chunks with 50-token context overlap.
+   - Preserves semantic boundaries across paragraphs and sections.
+3. Embedding Generation:
+   - Uses sentence-transformers/all-MiniLM-L6-v2 yielding 384-dimensional dense vectors.
+   - Zero external API calls to OpenAI or cloud embedding providers.
+4. Dense Indexing & Vector Search:
+   - Indexes vectors in FAISS using IndexFlatIP (inner product cosine similarity).
+   - In production PostgreSQL, vectors persist in pgvector tables with ivfflat indexing.
+   - Retrieves top-3 chunks matching the user query with sub-10ms retrieval latency.
+5. Local LLM Reasoning & Streaming:
+   - Context is injected into a strict grounding prompt.
+   - Local Ollama instance (Qwen2.5:3b) generates token-by-token streaming responses via Server-Sent Events (SSE).
+   - Hallucination prevention: if context lacks the answer, the model explicitly acknowledges the boundary.
+`.trim(),
+    exampleQuestions: [
+      'What embedding model and vector dimension are used?',
+      'How are chunks split and indexed for similarity search?',
+      'How does the system stream tokens back to the client?',
+      'How are hallucinations prevented?',
+    ],
+  },
+  {
+    id: 'weather_spec',
+    name: 'Weather Microservice Spec',
+    badge: '🌦️ Microservice',
+    text: `
+Technical Specification: Weather Microservice API & Cross-Platform UI
+1. Architecture Overview:
+   - A decoupled microservice architecture connecting React Native Web frontend to a Django REST Framework backend.
+   - Backend acts as an intelligent proxy, normalizer, and rate-limiting gateway.
+2. Geocoding Resolution:
+   - Queries Open-Meteo Geocoding API with city name normalization, language filtering, and coordinate resolution.
+3. Meteorological Aggregation:
+   - Fetches current weather metrics: temperature_2m, apparent_temperature, relative_humidity_2m, wind_speed_10m, and WMO weather codes.
+   - Queries 5-day daily forecasts including temperature min/max and daily WMO codes.
+4. Response Cleaning & Transformation:
+   - Maps numerical WMO codes to human-readable weather descriptions and curated weather icon glyphs.
+   - Formats data into a lightweight JSON schema optimized for low-bandwidth mobile devices.
+5. Resiliency & Performance:
+   - ScopedRateThrottle limits requests to 20/min per IP to prevent service abuse.
+   - Fallback error handling handles network timeouts and unrecognized city queries gracefully.
+`.trim(),
+    exampleQuestions: [
+      'How does the geocoding resolution work?',
+      'What weather metrics are retrieved and normalized?',
+      'How does the service protect against rate limits and abuse?',
+      'How are WMO codes mapped to UI icons?',
+    ],
+  },
 ];
+
+type ChatMessage = {
+  id: string;
+  sender: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+  chunks?: string[];
+  isStreaming?: boolean;
+};
 
 export function RAGDemo() {
   const t = useTheme();
-  const [question, setQuestion] = useState('Summarize this document and list key points.');
-  const [answer, setAnswer] = useState(
-    'Upload any PDF or use the default document. Ask a question to see real-time streaming RAG inference with grounded document citations.'
-  );
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [uploadedFileName, setUploadedFileName] = useState('sample-document.pdf');
-  const [showPreview, setShowPreview] = useState(false);
-  const [contextUsed, setContextUsed] = useState<string[]>([
-    'Siva Kumar Annam is a full-stack engineer and AI developer.',
-    'Core competencies include React Native, Expo, Django REST Framework, PostgreSQL, and Python.',
-  ]);
-  const [isStreaming, setIsStreaming] = useState(false);
 
-  // Clean up object URL when file changes or unmounts
+  // Active Document Preset
+  const [activePreset, setActivePreset] = useState<DocumentPreset['id']>('profile');
+  const [customFile, setCustomFile] = useState<File | null>(null);
+  const [customFileUrl, setCustomFileUrl] = useState<string | null>(null);
+  const [customFileName, setCustomFileName] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Conversation history
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: 'welcome',
+      sender: 'assistant',
+      text: 'Welcome to the **RAG Document Studio**! Select a preset document or upload your own PDF to ask questions with real-time streaming grounded AI.',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      chunks: ['Siva Kumar Annam — Full-Stack Developer & AI Systems Engineer portfolio knowledge base.'],
+    },
+  ]);
+
+  const [inputQuery, setInputQuery] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const currentPreset = useMemo(() => {
+    return DOCUMENT_PRESETS.find((p) => p.id === activePreset) || DOCUMENT_PRESETS[0];
+  }, [activePreset]);
+
+  // Clean up object URLs
   useEffect(() => {
     return () => {
-      if (fileUrl) {
-        URL.revokeObjectURL(fileUrl);
+      if (customFileUrl) {
+        URL.revokeObjectURL(customFileUrl);
       }
     };
-  }, [fileUrl]);
+  }, [customFileUrl]);
 
-  const matches = useMemo(
-    () => ['⚡ Live SSE Streaming', '📄 In-Browser Preview', '🧠 Semantic Retrieval', '🔒 Anti-Hallucination'],
-    []
-  );
-
-  const pickDocument = () => {
+  const pickCustomDocument = () => {
     if (typeof document !== 'undefined') {
       const input = document.createElement('input');
       input.type = 'file';
@@ -59,94 +159,189 @@ export function RAGDemo() {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (!file) return;
 
-        setSelectedFile(file);
-        setUploadedFileName(file.name);
-
-        if (fileUrl) {
-          URL.revokeObjectURL(fileUrl);
+        setCustomFile(file);
+        setCustomFileName(file.name);
+        if (customFileUrl) {
+          URL.revokeObjectURL(customFileUrl);
         }
         const newUrl = URL.createObjectURL(file);
-        setFileUrl(newUrl);
+        setCustomFileUrl(newUrl);
+        setActivePreset('custom');
         setShowPreview(true);
       };
       input.click();
-      return;
     }
-
-    setSelectedFile(null);
-    setUploadedFileName('sample-document.pdf');
   };
 
-  const runStreamingRAG = async () => {
-    const q = question.trim();
-    if (!q) {
-      setAnswer('Please enter a question to query the document.');
-      return;
+  const copyToClipboard = (text: string, id: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
     }
+  };
+
+  const clearChat = () => {
+    setMessages([
+      {
+        id: 'cleared-' + Date.now(),
+        sender: 'assistant',
+        text: `Conversation cleared. Ready for your questions on **${activePreset === 'custom' ? customFileName : currentPreset.name}**!`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+    ]);
+  };
+
+  const handleAsk = async (queryText?: string) => {
+    const q = (queryText ?? inputQuery).trim();
+    if (!q || isStreaming) return;
+
+    setInputQuery('');
+    const userMsgId = 'u-' + Date.now();
+    const assistantMsgId = 'a-' + Date.now();
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Append user message & placeholder assistant message
+    setMessages((prev) => [
+      ...prev,
+      { id: userMsgId, sender: 'user', text: q, timestamp: nowTime },
+      { id: assistantMsgId, sender: 'assistant', text: '', timestamp: nowTime, isStreaming: true, chunks: [] },
+    ]);
 
     setIsStreaming(true);
-    setAnswer(''); // Clear for streaming tokens
 
     try {
-      // Create a Blob from the sample text if no file was uploaded
-      let fileToUpload: File | Blob = selectedFile as File;
-      if (!fileToUpload) {
-        fileToUpload = new Blob([sampleDocumentText], { type: 'text/plain' });
+      let fileToUpload: File | Blob;
+      if (activePreset === 'custom' && customFile) {
+        fileToUpload = customFile;
+      } else {
+        fileToUpload = new Blob([currentPreset.text], { type: 'text/plain' });
       }
 
       await streamRagQuestion(
         fileToUpload,
         q,
         (token: string) => {
-          setAnswer((prev) => prev + token);
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMsgId ? { ...msg, text: msg.text + token } : msg
+            )
+          );
         },
         (chunks: string[]) => {
-          setContextUsed(chunks);
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === assistantMsgId ? { ...msg, chunks } : msg
+            )
+          );
         }
       );
     } catch (error) {
-      setAnswer(
+      const errMsg =
         error instanceof Error && !error.message.includes('fetch') && !error.message.includes('NetworkError')
           ? error.message
-          : 'The backend API is waking up (free-tier cold start — ~30s). Please wait a moment and try again.'
+          : 'The backend API is waking up (cold start ~30s). Please try asking again in a moment.';
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMsgId ? { ...msg, text: errMsg, isStreaming: false } : msg
+        )
       );
     } finally {
       setIsStreaming(false);
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMsgId ? { ...msg, isStreaming: false } : msg
+        )
+      );
     }
   };
 
   return (
     <View>
-      {/* File Ingestion & PDF Preview Bar */}
+      {/* 1. Preset Document Selector */}
       <View
         style={{
+          backgroundColor: t.cardAlt,
           borderWidth: 1,
           borderColor: t.border,
-          borderRadius: 16,
-          backgroundColor: t.cardAlt,
+          borderRadius: 18,
           padding: 16,
-          marginBottom: 14,
+          marginBottom: 16,
         }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-          <View style={{ flex: 1, minWidth: 200 }}>
-            <Text style={{ color: t.muted, fontSize: 11, fontWeight: '800', letterSpacing: 0.6 }}>INGESTED DOCUMENT</Text>
-            <Text style={{ color: t.text, fontSize: 16, fontWeight: '800', marginTop: 4 }}>{uploadedFileName}</Text>
-          </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <Text style={{ color: t.muted, fontSize: 11, fontWeight: '800', letterSpacing: 0.6 }}>
+            ACTIVE KNOWLEDGE BASE
+          </Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
-            <Button label="Upload PDF / File" onPress={pickDocument} />
             <Button
-              label={showPreview ? 'Hide Preview ✕' : 'Preview Document 👁'}
+              label={showPreview ? 'Hide Document ✕' : 'Inspect Document 👁'}
               variant="secondary"
               onPress={() => setShowPreview(!showPreview)}
             />
+            <Button label="+ Upload Custom PDF" onPress={pickCustomDocument} />
           </View>
         </View>
 
-        {/* In-Browser PDF / Document Previewer */}
+        {/* Document Preset Pills */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+          {DOCUMENT_PRESETS.map((preset) => {
+            const isSelected = activePreset === preset.id;
+            return (
+              <Pressable
+                key={preset.id}
+                onPress={() => {
+                  setActivePreset(preset.id);
+                  setShowPreview(false);
+                }}
+                style={{
+                  backgroundColor: isSelected ? t.accent : t.chip,
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: isSelected ? t.accent : t.border,
+                }}>
+                <Text
+                  style={{
+                    color: isSelected ? '#05070A' : t.chipText,
+                    fontSize: 12,
+                    fontWeight: isSelected ? '800' : '600',
+                  }}>
+                  {preset.badge} {preset.name.split(' ')[0]}
+                </Text>
+              </Pressable>
+            );
+          })}
+
+          {customFile && (
+            <Pressable
+              onPress={() => setActivePreset('custom')}
+              style={{
+                backgroundColor: activePreset === 'custom' ? t.accent : t.chip,
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: activePreset === 'custom' ? t.accent : t.border,
+              }}>
+              <Text
+                style={{
+                  color: activePreset === 'custom' ? '#05070A' : t.chipText,
+                  fontSize: 12,
+                  fontWeight: activePreset === 'custom' ? '800' : '600',
+                }}>
+                📄 {customFileName.slice(0, 18)}...
+              </Text>
+            </Pressable>
+          )}
+        </View>
+
+        {/* Document In-Browser Preview Drawer */}
         {showPreview && (
           <View
             style={{
-              marginTop: 16,
+              marginTop: 14,
               borderRadius: 12,
               borderWidth: 1,
               borderColor: t.border,
@@ -159,134 +354,146 @@ export function RAGDemo() {
                 paddingHorizontal: 14,
                 paddingVertical: 8,
                 flexDirection: 'row',
-                alignItems: 'center',
                 justifyContent: 'space-between',
               }}>
               <Text style={{ color: t.chipText, fontSize: 12, fontWeight: '700' }}>
-                {fileUrl ? '📄 Live PDF Document Viewer' : '📄 Parsed Sample Document Preview'}
+                {activePreset === 'custom' ? `📄 ${customFileName}` : `📄 ${currentPreset.name}`}
               </Text>
-              <Text style={{ color: t.muted, fontSize: 11 }}>In-browser preview</Text>
+              <Text style={{ color: t.muted, fontSize: 11 }}>In-browser document view</Text>
             </View>
 
-            {fileUrl && Platform.OS === 'web' && selectedFile?.type === 'application/pdf' ? (
+            {activePreset === 'custom' && customFileUrl && customFile?.type === 'application/pdf' ? (
               <iframe
-                src={fileUrl}
-                style={{
-                  width: '100%',
-                  height: 380,
-                  border: 'none',
-                }}
-                title="PDF Document Preview"
+                src={customFileUrl}
+                style={{ width: '100%', height: 350, border: 'none' }}
+                title="Custom PDF Preview"
               />
             ) : (
-              <View style={{ padding: 16, maxHeight: 240 }}>
-                <Text style={{ color: t.text, fontSize: 14, lineHeight: 22 }}>
-                  {sampleDocumentText}
+              <ScrollView style={{ padding: 14, maxHeight: 220 }}>
+                <Text style={{ color: t.text, fontSize: 13, lineHeight: 21, fontFamily: Platform.OS === 'web' ? 'monospace' : undefined }}>
+                  {activePreset === 'custom' ? 'Custom uploaded document parsed and ready.' : currentPreset.text}
                 </Text>
-              </View>
+              </ScrollView>
             )}
           </View>
         )}
       </View>
 
-      {/* Question Input */}
-      <TextInput
-        value={question}
-        onChangeText={setQuestion}
-        placeholder="Ask a question about this document..."
-        placeholderTextColor={t.muted}
-        style={{
-          backgroundColor: t.cardAlt,
-          color: t.text,
-          borderColor: t.border,
-          borderWidth: 1.5,
-          borderRadius: 12,
-          paddingHorizontal: 16,
-          paddingVertical: 13,
-          fontSize: 16,
-          marginBottom: 12,
-        }}
-      />
-
-      {/* Feature Badges */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
-        {matches.map((m) => (
-          <Chip key={m} label={m} />
-        ))}
+      {/* 2. Example Prompt Chips for Active Document */}
+      <View style={{ marginBottom: 14 }}>
+        <Text style={{ color: t.muted, fontSize: 11, fontWeight: '800', letterSpacing: 0.5, marginBottom: 8 }}>
+          QUICK PROMPT SUGGESTIONS
+        </Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {currentPreset.exampleQuestions.map((prompt) => (
+            <Chip key={prompt} label={prompt} onPress={() => handleAsk(prompt)} />
+          ))}
+        </View>
       </View>
 
-      {/* Example Prompt Chips */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-        {examplePrompts.map((prompt) => (
-          <Chip key={prompt} label={prompt} onPress={() => setQuestion(prompt)} />
-        ))}
-      </View>
-
-      {/* Action Button */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <Button
-          label={isStreaming ? 'Streaming Answer...' : 'Ask question with Streaming RAG'}
-          onPress={runStreamingRAG}
-        />
-        {isStreaming && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10B981' }} />
-            <Text style={{ color: '#10B981', fontSize: 12, fontWeight: '700' }}>Receiving SSE Tokens</Text>
-          </View>
-        )}
-      </View>
-
-      {/* Real-time Streaming Answer Card */}
+      {/* 3. Multi-Turn Conversation Thread */}
       <View
         style={{
           backgroundColor: t.cardAlt,
-          borderColor: t.border,
           borderWidth: 1,
+          borderColor: t.border,
           borderRadius: 18,
-          padding: 20,
-          marginBottom: 18,
+          padding: 16,
+          marginBottom: 16,
         }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <Text style={{ color: t.muted, fontSize: 11, fontWeight: '800', letterSpacing: 0.6 }}>
-            STREAMED RAG ANSWER
-          </Text>
-          <View style={{ backgroundColor: t.navActive, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-            <Text style={{ color: t.accent, fontSize: 11, fontWeight: '700' }}>Local LLM Grounded</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: isStreaming ? '#F59E0B' : '#10B981' }} />
+            <Text style={{ color: t.text, fontSize: 13, fontWeight: '800' }}>
+              CONVERSATION HISTORY ({messages.length})
+            </Text>
           </View>
+          <Pressable onPress={clearChat}>
+            <Text style={{ color: t.muted, fontSize: 12, textDecorationLine: 'underline' }}>Clear Thread</Text>
+          </Pressable>
         </View>
 
-        <Text style={{ color: t.text, fontSize: 17, fontWeight: '600', lineHeight: 28 }}>
-          {answer}
-          {isStreaming && <Text style={{ color: t.accent, fontWeight: '900' }}> ▌</Text>}
-        </Text>
-      </View>
+        {/* Message Bubbles */}
+        <View style={{ gap: 14 }}>
+          {messages.map((msg) => {
+            const isUser = msg.sender === 'user';
+            return (
+              <View
+                key={msg.id}
+                style={{
+                  alignSelf: isUser ? 'flex-end' : 'flex-start',
+                  maxWidth: '92%',
+                  backgroundColor: isUser ? t.navActive : t.card,
+                  borderColor: isUser ? t.accent : t.border,
+                  borderWidth: 1,
+                  borderRadius: 16,
+                  padding: 14,
+                }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, gap: 12 }}>
+                  <Text style={{ color: isUser ? t.accent : t.muted, fontSize: 11, fontWeight: '800' }}>
+                    {isUser ? '👤 YOU' : '🤖 RAG ASSISTANT (QWEN2.5)'}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ color: t.muted, fontSize: 10 }}>{msg.timestamp}</Text>
+                    {!isUser && msg.text.length > 0 && (
+                      <Pressable onPress={() => copyToClipboard(msg.text, msg.id)}>
+                        <Text style={{ color: t.accent, fontSize: 10, fontWeight: '700' }}>
+                          {copiedId === msg.id ? 'Copied! ✓' : 'Copy'}
+                        </Text>
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
 
-      {/* Source Excerpts Card */}
-      <View
-        style={{
-          backgroundColor: t.cardAlt,
-          borderWidth: 1,
-          borderColor: t.border,
-          borderRadius: 14,
-          padding: 16,
-        }}>
-        <Text style={{ color: t.muted, fontWeight: '800', fontSize: 13, marginBottom: 10, letterSpacing: 0.4 }}>
-          SOURCE EXCERPTS (Grounded Context)
-        </Text>
-        {contextUsed.map((chunk, index) => (
-          <View
-            key={`${chunk.slice(0, 16)}-${index}`}
+                <Text style={{ color: t.text, fontSize: 15, lineHeight: 24, fontWeight: isUser ? '600' : '400' }}>
+                  {msg.text}
+                  {msg.isStreaming && <Text style={{ color: t.accent, fontWeight: '900' }}> ▌</Text>}
+                </Text>
+
+                {/* Grounded Citation Chunks */}
+                {msg.chunks && msg.chunks.length > 0 && !msg.isStreaming && (
+                  <View style={{ marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: t.border }}>
+                    <Text style={{ color: t.muted, fontSize: 10, fontWeight: '800', marginBottom: 4, letterSpacing: 0.4 }}>
+                      GROUNDED CITATIONS ({msg.chunks.length}):
+                    </Text>
+                    {msg.chunks.slice(0, 2).map((chunk, idx) => (
+                      <Text key={idx} style={{ color: t.muted, fontSize: 11, fontStyle: 'italic', marginBottom: 3 }}>
+                        • "{chunk.slice(0, 110)}..."
+                      </Text>
+                    ))}
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </View>
+
+        {/* Input Bar */}
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
+          <TextInput
+            value={inputQuery}
+            onChangeText={setInputQuery}
+            placeholder={`Ask a question about ${activePreset === 'custom' ? customFileName : currentPreset.name}...`}
+            placeholderTextColor={t.muted}
+            onSubmitEditing={() => handleAsk()}
+            editable={!isStreaming}
             style={{
+              flex: 1,
               backgroundColor: t.card,
-              borderWidth: 1,
+              color: t.text,
               borderColor: t.border,
-              borderRadius: 10,
-              padding: 12,
-              marginBottom: 8,
-            }}>
-            <Text style={{ color: t.text, fontSize: 14, lineHeight: 22 }}>{chunk}</Text>
-          </View>
-        ))}
+              borderWidth: 1.5,
+              borderRadius: 12,
+              paddingHorizontal: 14,
+              paddingVertical: 11,
+              fontSize: 15,
+            }}
+          />
+          <Button
+            label={isStreaming ? 'Streaming...' : 'Ask RAG ⚡'}
+            onPress={() => handleAsk()}
+          />
+        </View>
       </View>
     </View>
   );
