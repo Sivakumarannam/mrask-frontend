@@ -257,12 +257,18 @@ This guarantees that regardless of entry point or refresh state, the user is alw
 | Verification Test | Target Route / Action | HTTP Status | Production Result |
 | :--- | :--- | :--- | :--- |
 | **CI/CD Pipeline** | GitHub Actions Workflow | `0 Errors` | ✅ Passed (Run #4 in 1m 8s) |
+| **Direct Load & Refresh** | `/` (Home) | `200 OK` | ✅ Clean render, zero console errors |
+| **Direct Load & Refresh** | `/about` | `200 OK` | ✅ Clean render, zero console errors |
+| **Direct Load & Refresh** | `/skills` | `200 OK` | ✅ Clean render, zero console errors |
+| **Direct Load & Refresh** | `/services` | `200 OK` | ✅ Clean render, zero console errors |
+| **Direct Load & Refresh** | `/contact` | `200 OK` | ✅ Clean render, zero console errors |
+| **Direct Load & Refresh** | `/projects` | `200 OK` | ✅ Instant pre-rendered HTML |
 | **Direct Load & Refresh** | `/project/weather-app` | `200 OK` | ✅ Instant pre-rendered HTML |
 | **Direct Load & Refresh** | `/project/rag-chatbot` | `200 OK` | ✅ Instant pre-rendered HTML |
-| **Direct Load & Refresh** | `/projects` | `200 OK` | ✅ Instant pre-rendered HTML |
-| **Live Weather API** | City Search: "Guntur" | `200 OK` | ✅ 28°C, Humidity 87%, 5-day forecast |
-| **Live RAG Stream** | Ask Question: "What is summary..." | `200 OK` (SSE) | ✅ Token-by-token streaming answer |
-| **Back Button Nav** | Click `← Back to Projects` | Client Nav | ✅ Smooth transition to `/projects` |
+| **Live Weather API** | City Search: "Tokyo" / "Guntur" | `200 OK` | ✅ Live temperature, humidity, and 5-day forecast |
+| **AI Co-Pilot (Global)**| Click "Ask Mr.A.S.K AI" | `200 OK` (SSE) | ✅ Real-time streamed answer, no cold start delay |
+| **RAG Document Studio** | Architecture RAG: Embedding model query | `200 OK` (SSE) | ✅ Streams `sentence-transformers` & `384-dim`, 3 Grounded Citations |
+| **Back Button Nav** | Click `← Back to Projects` | Client Nav | ✅ Smooth deterministic transition to `/projects` |
 
 ---
 
