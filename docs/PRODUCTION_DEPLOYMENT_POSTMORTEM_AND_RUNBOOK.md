@@ -308,3 +308,77 @@ git push origin main
 ## 5. Summary Reference
 
 This documentation is maintained in the project repository to ensure that all future contributors and automated workflows follow these established architectural guidelines.
+
+---
+
+## 6. Post-Mortem & Resolution: Streaming Worker Deadlock & Indefinite Pending Stream Fix
+
+### Root Cause Analysis:
+1. **Gunicorn Worker Starvation via 90-Second Ollama Request Timeout**:
+   - In `portfolio/views.py`, `_generate_with_ollama` and `RAGStreamView` made outbound calls to `requests.post(OLLAMA_BASE_URL, ..., timeout=90)`.
+   - On Render Cloud free-tier containers, local Ollama is not provisioned. TCP connect to `localhost:11434` hung or waited for socket timeout up to 90 seconds.
+   - Gunicorn was running with 2 sync workers (`--workers 2`). Two requests to RAG or Copilot stream locked up both worker threads for 90 seconds each.
+   - Any concurrent request (like `OPTIONS /api/copilot/stream/` preflight or `GET /api/projects/`) queued indefinitely behind the blocked workers until the client aborted after 8s (`(canceled)`).
+
+2. **Frontend `fetch()` Missing AbortController / Connection Timeout**:
+   - In `portfolio-expo/lib/api.ts`, `streamCopilot()` and `streamRagQuestion()` lacked an initial connection timeout.
+   - When the backend worker was blocked or sleeping, `fetch()` waited indefinitely without rejecting.
+   - Because `fetch()` never threw an error, the `catch` block never executed, leaving the UI stuck on the streaming cursor `▌` indefinitely.
+
+### Concrete Fixes Applied:
+1. **Backend Ollama Fast Timeout & Non-Blocking Worker Yield**:
+   - Replaced `timeout=90` with a fast connect/read tuple `timeout=(1.0, 4.0)` in both `_generate_with_ollama` and `RAGStreamView`.
+   - If Ollama is unreachable within 1.0 second, it immediately falls back to vector chunk extraction in under 50ms without blocking Gunicorn workers.
+   - Added `permission_classes = ()` and `throttle_classes = ()` to `RAGStreamView`, `RAGAskView`, and `CopilotStreamView`.
+   - Configured `CORS_ALLOWED_ORIGIN_REGEXES = [r"^https:\/\/.*\.vercel\.app$"]` in `config/settings.py` so all Vercel branch deployments and preview URLs pass preflight CORS checks.
+2. **Frontend Stream Connection AbortController & Smart Summaries**:
+   - Implemented an `AbortController` with a 3.8s connection timeout in `streamRagQuestion()` and 3.5s in `streamCopilot()`.
+   - If the backend is cold-starting or proxying, the request cleanly aborts, immediately triggering the instant grounded client fallback.
+   - Enhanced `RAGDemo.tsx` with smart `isSummaryQuery` recognition and real-time custom text extraction via `FileReader` so document summaries are generated instantaneously.
+
+---
+
+## 7. Pro Features v2.5.0 Architecture & Documentation
+
+### Feature 1: Developer CLI Terminal Mode (Hacker Terminal)
+- **Component:** `components/DeveloperTerminal.tsx`
+- **Activation:** Press `` ` `` (backtick) or `~` anywhere on the site, click `>_ Terminal` floating button, or click sidebar / mobile menu icon.
+- **Commands Supported:**
+  - `help`: Comprehensive command index.
+  - `skills`: ASCII-formatted matrix of technical skills by domain.
+  - `projects`: Interactive list of production projects.
+  - `open <rag-chatbot|weather-app>`: Direct deep-link launcher.
+  - `weather <city>`: Real-time terminal ASCII weather forecast.
+  - `ask <query>`: Ask the Mr.A.S.K engine directly in terminal.
+  - `cv / resume`: Opens Recruiter CV Studio.
+  - `contact`: Email, GitHub, LinkedIn coordinates.
+  - `theme`: Toggles dark/light theme.
+  - `whoami`: Guest developer session privileges.
+  - `clear` & `exit`: Screen wipe and modal dismissal.
+- **Features:** Command history with Arrow Up / Down, quick command chips, auto-scrolling terminal window.
+
+### Feature 2: Recruiter CV Studio & ATS PDF Generator
+- **Component:** `components/RecruiterCVStudio.tsx`
+- **Activation:** "Recruiter CV Studio" button in sidebar, mobile header `CV` badge, or terminal command `cv`.
+- **Features:**
+  - Dynamic Role Filter: Tailors resume summary for "Full-Stack Developer", "Backend Systems Engineer", or "AI & RAG Systems".
+  - ATS-formatted clean layout with verified skills, metrics, and project impact.
+  - One-click "Print / Save ATS PDF" via browser print engine.
+  - One-click "Copy Plaintext ATS Resume" to clipboard for job portal submissions.
+  - Direct recruiter email link to Siva.
+
+### Feature 3: Projects Dynamic Search & Tech Filter
+- **Component:** `app/(tabs)/projects.tsx`
+- **Features:**
+  - Live search input matching title, tagline, summary, tech stack, and highlights.
+  - Dynamic filter pills: `All Projects`, `🧠 AI & RAG`, `🐍 Python / Django`, `⚛️ React Native / Expo`, `⚡ APIs & Microservices`.
+  - Live result counter ("Showing X of Y projects") and one-click filter reset.
+
+### Feature 4: Social OpenGraph & Link Preview Cards
+- **Component:** `app/+html.tsx`
+- **Features:**
+  - OpenGraph tags (`og:title`, `og:description`, `og:image`, `og:url`, `og:site_name`, `og:type`).
+  - Twitter Card tags (`summary_large_image`, `twitter:title`, `twitter:description`, `twitter:image`).
+  - Schema.org JSON-LD Structured Data for `Person` and `WebSite` indexing.
+  - Instant rich previews when sharing the portfolio on LinkedIn, WhatsApp, Twitter, and Slack.
+
