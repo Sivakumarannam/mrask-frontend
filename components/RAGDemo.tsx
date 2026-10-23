@@ -106,9 +106,9 @@ export function RAGDemo() {
       );
     } catch (error) {
       setAnswer(
-        error instanceof Error
+        error instanceof Error && !error.message.includes('fetch') && !error.message.includes('NetworkError')
           ? error.message
-          : 'Failed to stream response from RAG service. Verify Django server is active.'
+          : 'The backend API is waking up (free-tier cold start — ~30s). Please wait a moment and try again.'
       );
     } finally {
       setIsStreaming(false);

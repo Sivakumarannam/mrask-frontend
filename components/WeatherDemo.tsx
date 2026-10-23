@@ -29,9 +29,9 @@ export function WeatherDemo() {
       setData(null);
       const msg = e instanceof Error ? e.message : '';
       setError(
-        msg && !msg.includes('Network') && !msg.includes('aborted') && !msg.includes('fetch')
+        msg && !msg.includes('Network') && !msg.includes('aborted') && !msg.includes('fetch') && !msg.includes('Failed to fetch')
           ? msg
-          : 'The live demo API is offline right now. Start the Django server (python manage.py runserver) and try again.'
+          : 'The API is waking up (free-tier cold start — ~30s). Please try again in a moment.'
       );
     } finally {
       setLoading(false);
