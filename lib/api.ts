@@ -136,49 +136,58 @@ export async function streamRagQuestion(
   form.append('question', question);
   form.append('file', file);
 
-  const res = await fetch(API_URL + '/api/rag/stream/', {
-    method: 'POST',
-    body: form,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3800);
 
-  if (!res.ok) {
-    let detail = 'RAG stream request failed (' + res.status + ')';
-    try {
-      const data = await res.json();
-      detail = data.detail ?? detail;
-    } catch {}
-    throw new Error(detail);
-  }
+  try {
+    const res = await fetch(API_URL + '/api/rag/stream/', {
+      method: 'POST',
+      body: form,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
 
-  const reader = res.body?.getReader();
-  if (!reader) {
-    throw new Error('Streaming is not supported by your browser.');
-  }
+    if (!res.ok) {
+      let detail = 'RAG stream request failed (' + res.status + ')';
+      try {
+        const data = await res.json();
+        detail = data.detail ?? detail;
+      } catch {}
+      throw new Error(detail);
+    }
 
-  const decoder = new TextDecoder();
-  let buffer = '';
+    const reader = res.body?.getReader();
+    if (!reader) {
+      throw new Error('Streaming is not supported by your browser.');
+    }
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+    const decoder = new TextDecoder();
+    let buffer = '';
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n\n');
-    buffer = lines.pop() || '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith('data:')) {
-        try {
-          const payload = JSON.parse(trimmed.replace(/^data:\s*/, ''));
-          if (payload.type === 'token' && payload.token) {
-            onToken(payload.token);
-          } else if (payload.type === 'context' && payload.chunks && onContext) {
-            onContext(payload.chunks);
-          }
-        } catch {}
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data:')) {
+          try {
+            const payload = JSON.parse(trimmed.replace(/^data:\s*/, ''));
+            if (payload.type === 'token' && payload.token) {
+              onToken(payload.token);
+            } else if (payload.type === 'context' && payload.chunks && onContext) {
+              onContext(payload.chunks);
+            }
+          } catch {}
+        }
       }
     }
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -205,49 +214,58 @@ export async function streamCopilot({
   onToken: (token: string) => void;
   onSuggestions?: (suggestions: string[]) => void;
 }): Promise<void> {
-  const res = await fetch(API_URL + '/api/copilot/stream/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-  if (!res.ok) {
-    let detail = 'Copilot stream failed (' + res.status + ')';
-    try {
-      const data = await res.json();
-      detail = data.detail ?? detail;
-    } catch {}
-    throw new Error(detail);
-  }
+  try {
+    const res = await fetch(API_URL + '/api/copilot/stream/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
 
-  const reader = res.body?.getReader();
-  if (!reader) {
-    throw new Error('Streaming is not supported by your browser.');
-  }
+    if (!res.ok) {
+      let detail = 'Copilot stream failed (' + res.status + ')';
+      try {
+        const data = await res.json();
+        detail = data.detail ?? detail;
+      } catch {}
+      throw new Error(detail);
+    }
 
-  const decoder = new TextDecoder();
-  let buffer = '';
+    const reader = res.body?.getReader();
+    if (!reader) {
+      throw new Error('Streaming is not supported by your browser.');
+    }
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+    const decoder = new TextDecoder();
+    let buffer = '';
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n\n');
-    buffer = lines.pop() || '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith('data:')) {
-        try {
-          const payload = JSON.parse(trimmed.replace(/^data:\s*/, ''));
-          if (payload.type === 'token' && payload.token) {
-            onToken(payload.token);
-          } else if (payload.suggestions && onSuggestions) {
-            onSuggestions(payload.suggestions);
-          }
-        } catch {}
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('data:')) {
+          try {
+            const payload = JSON.parse(trimmed.replace(/^data:\s*/, ''));
+            if (payload.type === 'token' && payload.token) {
+              onToken(payload.token);
+            } else if (payload.suggestions && onSuggestions) {
+              onSuggestions(payload.suggestions);
+            }
+          } catch {}
+        }
       }
     }
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
