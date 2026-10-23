@@ -1,1 +1,0 @@
-Siva Kumar Annam is a full-stack developer. He builds React Native apps, Django APIs, and AI chatbots. His portfolio includes a RAG chatbot that answers questions from uploaded documents.
