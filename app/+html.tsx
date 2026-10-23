@@ -1,10 +1,47 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 import type { ReactNode } from 'react';
 
-// This file is web-only and used to configure the root HTML for every
-// web page during static rendering.
-// The contents of this function only run in Node.js environments and
-// do not have access to the DOM or browser APIs.
+const structuredData = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': 'https://mrask-frontend.vercel.app/#person',
+      name: 'Siva Kumar Annam',
+      alternateName: 'Mr.A.S.K',
+      jobTitle: 'Full-Stack Developer & AI Systems Engineer',
+      description:
+        'Full-Stack Developer and AI Systems Engineer specializing in Python, Django REST Framework, React Native, Expo, and on-premise RAG vector architectures.',
+      url: 'https://mrask-frontend.vercel.app',
+      sameAs: [
+        'https://github.com/Sivakumarannam',
+        'https://linkedin.com/in/siva-kumar-annam',
+      ],
+      knowsAbout: [
+        'Python',
+        'Django',
+        'FastAPI',
+        'React Native',
+        'Expo',
+        'Retrieval-Augmented Generation (RAG)',
+        'FAISS',
+        'PostgreSQL',
+        'Docker',
+      ],
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://mrask-frontend.vercel.app/#website',
+      url: 'https://mrask-frontend.vercel.app',
+      name: 'Siva Kumar Annam (Mr.A.S.K) Portfolio',
+      description: 'Production portfolio featuring full-stack applications, live weather APIs, and RAG AI studios.',
+      publisher: {
+        '@id': 'https://mrask-frontend.vercel.app/#person',
+      },
+    },
+  ],
+});
+
 export default function Root({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -13,15 +50,49 @@ export default function Root({ children }: { children: ReactNode }) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-        {/*
-          Disable body scrolling on web. This makes ScrollView components work closer to how they do on native.
-          However, body scrolling is often nice to have for mobile web. If you want to enable it, remove this line.
-        */}
-        <ScrollViewStyleReset />
+        {/* Primary Meta Tags */}
+        <title>Siva Kumar Annam (Mr.A.S.K) | Full-Stack & AI Systems Engineer</title>
+        <meta
+          name="description"
+          content="Production engineering portfolio of Siva Kumar Annam (Mr.A.S.K). Featuring self-hosted RAG LLM architectures, real-time Django microservices, and cross-platform React Native Expo apps."
+        />
+        <meta
+          name="keywords"
+          content="Siva Kumar Annam, Mr.A.S.K, Full-Stack Developer, Python Developer, Django Engineer, React Native, Expo, RAG Chatbot, AI Engineer, FAISS, Ollama, Portfolio"
+        />
+        <meta name="author" content="Siva Kumar Annam" />
+        <meta name="theme-color" content="#0B0F19" />
 
-        {/* Using raw CSS styles as an escape-hatch to ensure the background color never flickers in dark-mode. */}
+        {/* OpenGraph / Facebook / LinkedIn / WhatsApp */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://mrask-frontend.vercel.app/" />
+        <meta property="og:site_name" content="Mr.A.S.K Portfolio" />
+        <meta property="og:title" content="Siva Kumar Annam (Mr.A.S.K) | Full-Stack & AI Systems Engineer" />
+        <meta
+          property="og:description"
+          content="Explore production web apps, Django & FastAPI backend services, RAG AI document intelligence, and cross-platform mobile solutions."
+        />
+        <meta property="og:image" content="https://mrask-frontend.vercel.app/profile-photo.0fb2fb9a00e099716e9102c917997f7f.png" />
+        <meta property="og:image:alt" content="Siva Kumar Annam Profile Avatar" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://mrask-frontend.vercel.app/" />
+        <meta name="twitter:title" content="Siva Kumar Annam (Mr.A.S.K) | Full-Stack & AI Systems Engineer" />
+        <meta
+          name="twitter:description"
+          content="Full-Stack Engineer building scalable web apps, real-time RAG AI systems, and cloud microservices."
+        />
+        <meta name="twitter:image" content="https://mrask-frontend.vercel.app/profile-photo.0fb2fb9a00e099716e9102c917997f7f.png" />
+
+        {/* JSON-LD Structured Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: structuredData }}
+        />
+
+        <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
-        {/* Add any additional <head> elements that you want globally available on web... */}
       </head>
       <body suppressHydrationWarning>{children}</body>
     </html>
@@ -30,10 +101,10 @@ export default function Root({ children }: { children: ReactNode }) {
 
 const responsiveBackground = `
 body {
-  background-color: #fff;
+  background-color: #0b0f19;
 }
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   body {
-    background-color: #000;
+    background-color: #f8fafc;
   }
 }`;

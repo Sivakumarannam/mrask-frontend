@@ -1,8 +1,11 @@
 import { SymbolView } from 'expo-symbols';
 import { Tabs, usePathname, useRouter } from 'expo-router';
-import { Dimensions, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Dimensions, Image, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { AICopilot } from '@/components/AICopilot';
+import { DeveloperTerminal } from '@/components/DeveloperTerminal';
+import { RecruiterCVStudio } from '@/components/RecruiterCVStudio';
 import { useThemeContext } from '@/constants/theme';
 import { profile } from '@/data/profile';
 import { openGmail, openLink } from '@/lib/links';
@@ -22,6 +25,29 @@ export default function TabLayout() {
   const rawPath = usePathname();
   const pathname = rawPath.replace(/^\/\(tabs\)/, '') || '/';
   const isMobile = Dimensions.get('window').width < 900;
+
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const [isCVStudioOpen, setIsCVStudioOpen] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === '`' || e.key === '~') {
+          const target = e.target as HTMLElement;
+          if (
+            target &&
+            (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+          ) {
+            return;
+          }
+          e.preventDefault();
+          setIsTerminalOpen((prev) => !prev);
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, []);
 
   const isItemActive = (targetPath: string) => {
     if (targetPath === '/') {
@@ -95,7 +121,39 @@ export default function TabLayout() {
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={{ color: t.text, fontSize: 20, fontWeight: '800' }}>{profile.displayName}</Text>
             </View>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+              <Pressable
+                onPress={() => setIsTerminalOpen(true)}
+                style={{
+                  paddingHorizontal: 7,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#10b98122',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#10b981',
+                }}>
+                <Text style={{ color: '#10b981', fontWeight: '800', fontSize: 11, fontFamily: 'monospace' }}>
+                  {'>_' }
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setIsCVStudioOpen(true)}
+                style={{
+                  paddingHorizontal: 7,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#38bdf822',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#38bdf8',
+                }}>
+                <Text style={{ color: '#38bdf8', fontWeight: '800', fontSize: 10 }}>
+                  CV
+                </Text>
+              </Pressable>
               {/* Theme toggle on mobile */}
               <Pressable
                 onPress={toggleMode}
@@ -169,6 +227,15 @@ export default function TabLayout() {
           </Tabs>
         </View>
         <AICopilot />
+        <DeveloperTerminal
+          isOpen={isTerminalOpen}
+          onClose={() => setIsTerminalOpen(false)}
+          onOpenCVStudio={() => setIsCVStudioOpen(true)}
+        />
+        <RecruiterCVStudio
+          isOpen={isCVStudioOpen}
+          onClose={() => setIsCVStudioOpen(false)}
+        />
       </View>
     );
   }
@@ -252,8 +319,60 @@ export default function TabLayout() {
 
         <View style={{ gap: 6 }}>{navItems.map((item) => renderNavButton(item))}</View>
 
-        {/* Bottom area: Theme Switcher + Copyright */}
-        <View style={{ marginTop: 'auto', paddingTop: 18 }}>
+        {/* Bottom area: Terminal + CV Studio + Theme Switcher + Copyright */}
+        <View style={{ marginTop: 'auto', paddingTop: 18, gap: 8 }}>
+          <Pressable
+            onPress={() => setIsTerminalOpen(true)}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 9,
+              paddingHorizontal: 12,
+              borderRadius: 10,
+              backgroundColor: '#10b98115',
+              borderWidth: 1,
+              borderColor: '#10b98144',
+              opacity: pressed ? 0.8 : 1,
+            })}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ color: '#10b981', fontWeight: '800', fontSize: 13, fontFamily: 'monospace' }}>
+                {'>_' }
+              </Text>
+              <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>
+                CLI Terminal
+              </Text>
+            </View>
+            <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: '#10b98133' }}>
+              <Text style={{ color: '#10b981', fontSize: 11, fontFamily: 'monospace', fontWeight: '700' }}>`</Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setIsCVStudioOpen(true)}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 9,
+              paddingHorizontal: 12,
+              borderRadius: 10,
+              backgroundColor: '#38bdf815',
+              borderWidth: 1,
+              borderColor: '#38bdf844',
+              opacity: pressed ? 0.8 : 1,
+            })}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ fontSize: 14 }}>📋</Text>
+              <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>
+                Recruiter CV Studio
+              </Text>
+            </View>
+            <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: '#38bdf833' }}>
+              <Text style={{ color: '#38bdf8', fontSize: 10, fontWeight: '800' }}>ATS</Text>
+            </View>
+          </Pressable>
+
           <Pressable
             onPress={toggleMode}
             accessibilityLabel="Toggle light or dark theme"
@@ -261,17 +380,17 @@ export default function TabLayout() {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              paddingVertical: 10,
+              paddingVertical: 9,
               paddingHorizontal: 12,
-              borderRadius: 12,
+              borderRadius: 10,
               backgroundColor: t.iconBg,
               borderWidth: 1,
               borderColor: t.iconBorder,
               opacity: pressed ? 0.75 : 1,
-              marginBottom: 16,
+              marginBottom: 8,
             })}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ fontSize: 15 }}>{isDark ? '🌙' : '☀️'}</Text>
+              <Text style={{ fontSize: 14 }}>{isDark ? '🌙' : '☀️'}</Text>
               <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>
                 {isDark ? 'Dark Theme' : 'Light Theme'}
               </Text>
@@ -279,7 +398,7 @@ export default function TabLayout() {
             <View
               style={{
                 paddingHorizontal: 8,
-                paddingVertical: 3,
+                paddingVertical: 2,
                 borderRadius: 999,
                 backgroundColor: t.navActive,
               }}>
@@ -289,7 +408,7 @@ export default function TabLayout() {
             </View>
           </Pressable>
 
-          <View style={{ borderTopWidth: 1, borderTopColor: t.sidebarBorder, paddingTop: 14 }}>
+          <View style={{ borderTopWidth: 1, borderTopColor: t.sidebarBorder, paddingTop: 12 }}>
             <Text style={{ color: t.muted, fontSize: 12, fontWeight: '600' }}>© {profile.displayName}</Text>
           </View>
         </View>
@@ -312,7 +431,55 @@ export default function TabLayout() {
           <Tabs.Screen name="contact" options={{ title: 'Contact' }} />
         </Tabs>
       </View>
+
+      {/* Floating CLI Terminal Toggle Button (Desktop/Web) */}
+      {!isMobile && (
+        <Pressable
+          onPress={() => setIsTerminalOpen(true)}
+          style={({ pressed }) => ({
+            position: 'absolute',
+            bottom: 84,
+            right: 24,
+            zIndex: 99998,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            paddingHorizontal: 14,
+            paddingVertical: 8,
+            borderRadius: 20,
+            backgroundColor: '#0a0d14',
+            borderWidth: 1,
+            borderColor: '#10b981',
+            shadowColor: '#10b981',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.35,
+            shadowRadius: 10,
+            opacity: pressed ? 0.85 : 1,
+          })}>
+          <Text style={{ color: '#10b981', fontWeight: '800', fontSize: 13, fontFamily: 'monospace' }}>
+            {'>_' }
+          </Text>
+          <Text style={{ color: '#f8fafc', fontSize: 12, fontWeight: '700' }}>
+            Terminal
+          </Text>
+          <View style={{ paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, backgroundColor: '#10b98133' }}>
+            <Text style={{ color: '#10b981', fontSize: 10, fontFamily: 'monospace', fontWeight: '800' }}>`</Text>
+          </View>
+        </Pressable>
+      )}
+
       <AICopilot />
+
+      <DeveloperTerminal
+        isOpen={isTerminalOpen}
+        onClose={() => setIsTerminalOpen(false)}
+        onOpenCVStudio={() => setIsCVStudioOpen(true)}
+      />
+
+      <RecruiterCVStudio
+        isOpen={isCVStudioOpen}
+        onClose={() => setIsCVStudioOpen(false)}
+      />
     </View>
   );
 }
