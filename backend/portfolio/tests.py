@@ -103,3 +103,17 @@ class PortfolioAPITests(TestCase):
         self.assertIn('endpoints', data)
         self.assertGreaterEqual(len(data['endpoints']), 5)
 
+    def test_rag_stream_endpoint(self):
+        test_file = SimpleUploadedFile('sample.txt', b'LangChain and Ollama power local RAG.', content_type='text/plain')
+        response = self.client.post(
+            '/api/rag/stream/',
+            {'question': 'What powers local RAG?', 'file': test_file},
+            format='multipart',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/event-stream')
+        # Consume stream chunks
+        content = b''.join(response.streaming_content).decode('utf-8')
+        self.assertIn('data:', content)
+        self.assertIn('"type": "done"', content)
+

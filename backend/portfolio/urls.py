@@ -11,4 +11,5 @@ urlpatterns = [
     path('contact/', views.ContactCreate.as_view()),
     path('weather/', views.WeatherView.as_view()),
     path('rag/ask/', views.RAGAskView.as_view()),
+    path('rag/stream/', views.RAGStreamView.as_view()),
 ]

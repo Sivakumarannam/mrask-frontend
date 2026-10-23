@@ -6,12 +6,15 @@ import threading
 from functools import lru_cache
 from io import BytesIO
 
+import json
+import time
 from datetime import datetime, timezone
 import requests
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.mail.message import BadHeaderError
 from django.db import connection
+from django.http import StreamingHttpResponse
 from pypdf import PdfReader
 from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -438,6 +441,77 @@ class RAGAskView(APIView):
             'normalized_question': question,
             'context_used': selected or chunks[:3],
         })
+
+
+class RAGStreamView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request):
+        raw_question = (request.POST.get('question') or '').strip()
+        uploaded_file = request.FILES.get('file')
+        if not raw_question:
+            return Response({'detail': 'Please provide a question to ask.'}, status=status.HTTP_400_BAD_REQUEST)
+        if uploaded_file is None:
+            return Response({'detail': 'Please upload a PDF or text document.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        question = normalize_question(raw_question)
+
+        try:
+            text = extract_text(uploaded_file)
+        except Exception:
+            return Response({'detail': 'The uploaded file could not be processed. Please try a PDF or text file.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        cleaned = re.sub(r'\s+', ' ', text).strip()
+        if not cleaned:
+            return Response({'detail': 'The uploaded file is empty or unreadable.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        chunks = split_into_chunks(cleaned)
+        selected = _build_semantic_context(question, chunks) if chunks else []
+
+        def event_stream():
+            yield f"data: {json.dumps({'type': 'context', 'chunks': selected or chunks[:3], 'file': uploaded_file.name})}\n\n"
+
+            model_name = os.environ.get('OLLAMA_MODEL', 'qwen2.5:3b')
+            context = (cleaned or '\n\n'.join(chunks)).strip()[:8000]
+            prompt = (
+                'Answer the user question using only the document text below. '
+                'Base your answer on the actual content in the document. '
+                f'Question: {question}\n\nDocument text:\n{context}'
+            )
+
+            streamed_any = False
+            try:
+                with requests.post(
+                    f"{OLLAMA_BASE_URL.rstrip('/')}/api/generate",
+                    json={'model': model_name, 'prompt': prompt, 'stream': True, 'options': {'temperature': 0.2}},
+                    stream=True,
+                    timeout=90,
+                ) as r:
+                    if r.status_code == 200:
+                        for line in r.iter_lines():
+                            if line:
+                                chunk_data = json.loads(line.decode('utf-8'))
+                                token = chunk_data.get('response', '')
+                                if token:
+                                    streamed_any = True
+                                    yield f"data: {json.dumps({'type': 'token', 'token': token})}\n\n"
+            except Exception:
+                streamed_any = False
+
+            if not streamed_any:
+                full_answer = answer_from_chunks(question, chunks, full_text=cleaned)
+                words = full_answer.split(' ')
+                for idx, word in enumerate(words):
+                    token = word + (' ' if idx < len(words) - 1 else '')
+                    yield f"data: {json.dumps({'type': 'token', 'token': token})}\n\n"
+                    time.sleep(0.015)
+
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+        response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+        response['Cache-Control'] = 'no-cache'
+        response['X-Accel-Buffering'] = 'no'
+        return response
 
 
 class HealthCheckView(APIView):

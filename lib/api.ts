@@ -125,3 +125,59 @@ export function askRagQuestion(file: File, question: string) {
     return (await res.json()) as RagAnswer;
   });
 }
+
+export async function streamRagQuestion(
+  file: File | Blob,
+  question: string,
+  onToken: (token: string) => void,
+  onContext?: (chunks: string[]) => void
+): Promise<void> {
+  const form = new FormData();
+  form.append('question', question);
+  form.append('file', file);
+
+  const res = await fetch(API_URL + '/api/rag/stream/', {
+    method: 'POST',
+    body: form,
+  });
+
+  if (!res.ok) {
+    let detail = 'RAG stream request failed (' + res.status + ')';
+    try {
+      const data = await res.json();
+      detail = data.detail ?? detail;
+    } catch {}
+    throw new Error(detail);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) {
+    throw new Error('Streaming is not supported by your browser.');
+  }
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('data:')) {
+        try {
+          const payload = JSON.parse(trimmed.replace(/^data:\s*/, ''));
+          if (payload.type === 'token' && payload.token) {
+            onToken(payload.token);
+          } else if (payload.type === 'context' && payload.chunks && onContext) {
+            onContext(payload.chunks);
+          }
+        } catch {}
+      }
+    }
+  }
+}

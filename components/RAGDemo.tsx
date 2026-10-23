@@ -1,40 +1,52 @@
-import { useMemo, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Platform, Pressable, Text, TextInput, View } from 'react-native';
 
 import { Button, Chip } from '@/components/ui';
 import { useTheme } from '@/constants/theme';
-import { askRagQuestion } from '@/lib/api';
+import { streamRagQuestion } from '@/lib/api';
 
-const sampleContext = `
-Siva Kumar Annam is a full-stack developer focused on building web and mobile products.
-He works with React Native, Expo, Django, PostgreSQL, Python, and AI tools like LangChain, FAISS, Ollama, and Qwen.
-His portfolio includes a RAG chatbot that answers questions from uploaded PDF documents using local retrieval.
-The project stores embeddings in FAISS and uses the model locally for grounded answers.
-`;
+const sampleDocumentText = `
+Siva Kumar Annam (Mr.A.S.K) is a full-stack engineer and AI developer.
+Core competencies include React Native, Expo, Django REST Framework, PostgreSQL, and Python.
+The portfolio features an on-premise RAG Chatbot that ingests PDF documents, splits text into 500-token chunks,
+generates embeddings using Sentence-Transformers, indexes dense vectors in FAISS, and uses local Ollama Qwen2.5 for grounded Q&A.
+This guarantees 100% privacy with zero data leakage to cloud providers.
+`.trim();
 
 const examplePrompts = [
-  'Summarize this document and list the key points.',
-  'What are the main features mentioned in this PDF?',
-  'List the skills and responsibilities in this document.',
-  'Give me a short 3-point summary of this file.',
+  'Summarize this document and list key points.',
+  'What are the core technical skills mentioned?',
+  'How does the RAG pipeline protect privacy?',
+  'Give me a 3-point summary of this file.',
 ];
 
 export function RAGDemo() {
   const t = useTheme();
-  const [question, setQuestion] = useState('Summarize this document and list the key points and features.');
+  const [question, setQuestion] = useState('Summarize this document and list key points.');
   const [answer, setAnswer] = useState(
-    'Upload a PDF and ask a real question about its content. The app will search the text, retrieve the most relevant passages, and answer from the document itself.'
+    'Upload any PDF or use the default document. Ask a question to see real-time streaming RAG inference with grounded document citations.'
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadedFile, setUploadedFile] = useState('sample-document.pdf');
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState('sample-document.pdf');
+  const [showPreview, setShowPreview] = useState(false);
   const [contextUsed, setContextUsed] = useState<string[]>([
-    'Siva Kumar Annam is a full-stack developer focused on building web and mobile products.',
-    'He works with React Native, Expo, Django, PostgreSQL, Python, and AI tools like LangChain, FAISS, Ollama, and Qwen.',
+    'Siva Kumar Annam is a full-stack engineer and AI developer.',
+    'Core competencies include React Native, Expo, Django REST Framework, PostgreSQL, and Python.',
   ]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+
+  // Clean up object URL when file changes or unmounts
+  useEffect(() => {
+    return () => {
+      if (fileUrl) {
+        URL.revokeObjectURL(fileUrl);
+      }
+    };
+  }, [fileUrl]);
 
   const matches = useMemo(
-    () => ['Any PDF', 'Ask anything', 'Semantic retrieval', 'Grounded answer'],
+    () => ['⚡ Live SSE Streaming', '📄 In-Browser Preview', '🧠 Semantic Retrieval', '🔒 Anti-Hallucination'],
     []
   );
 
@@ -42,158 +54,234 @@ export function RAGDemo() {
     if (typeof document !== 'undefined') {
       const input = document.createElement('input');
       input.type = 'file';
-      input.accept = '.pdf,.txt,.docx';
+      input.accept = '.pdf,.txt';
       input.onchange = (event: Event) => {
         const file = (event.target as HTMLInputElement).files?.[0];
-        if (!file) {
-          return;
-        }
+        if (!file) return;
+
         setSelectedFile(file);
-        setUploadedFile(file.name);
+        setUploadedFileName(file.name);
+
+        if (fileUrl) {
+          URL.revokeObjectURL(fileUrl);
+        }
+        const newUrl = URL.createObjectURL(file);
+        setFileUrl(newUrl);
+        setShowPreview(true);
       };
       input.click();
       return;
     }
 
     setSelectedFile(null);
-    setUploadedFile('sample-document.pdf');
+    setUploadedFileName('sample-document.pdf');
   };
 
-  const runDemo = async () => {
+  const runStreamingRAG = async () => {
     const q = question.trim();
-
     if (!q) {
-      setAnswer('Ask a question about the PDF document to see the RAG workflow in action.');
+      setAnswer('Please enter a question to query the document.');
       return;
     }
 
-    if (selectedFile) {
-      setIsLoading(true);
-      try {
-        const data = await askRagQuestion(selectedFile, q);
-        setAnswer(data.answer);
-        setUploadedFile(data.file || selectedFile.name);
-        setContextUsed(data.context_used ?? data.chunks_used ?? [sampleContext.trim()]);
-      } catch (error) {
-        setAnswer(
-          error instanceof Error
-            ? error.message
-            : 'The document could not be processed right now. Please try again or use the demo document.'
-        );
-      } finally {
-        setIsLoading(false);
+    setIsStreaming(true);
+    setAnswer(''); // Clear for streaming tokens
+
+    try {
+      // Create a Blob from the sample text if no file was uploaded
+      let fileToUpload: File | Blob = selectedFile as File;
+      if (!fileToUpload) {
+        fileToUpload = new Blob([sampleDocumentText], { type: 'text/plain' });
       }
-      return;
+
+      await streamRagQuestion(
+        fileToUpload,
+        q,
+        (token: string) => {
+          setAnswer((prev) => prev + token);
+        },
+        (chunks: string[]) => {
+          setContextUsed(chunks);
+        }
+      );
+    } catch (error) {
+      setAnswer(
+        error instanceof Error
+          ? error.message
+          : 'Failed to stream response from RAG service. Verify Django server is active.'
+      );
+    } finally {
+      setIsStreaming(false);
     }
-
-    const qLower = q.toLowerCase();
-
-    if (qLower.includes('pdf') || qLower.includes('document') || qLower.includes('upload')) {
-      setAnswer('The app uploads a PDF, extracts text, splits it into chunks, and retrieves the most relevant content before generating a grounded answer.');
-      return;
-    }
-
-    if (qLower.includes('how') || qLower.includes('work')) {
-      setAnswer('The system reads the PDF, creates embeddings, stores them in FAISS, retrieves the most relevant chunks, and then uses a local language model to answer the question.');
-      return;
-    }
-
-    if (qLower.includes('stack') || qLower.includes('technology') || qLower.includes('tool')) {
-      setAnswer('This workflow uses Python, LangChain, FAISS, Ollama, and a local LLM such as Qwen.');
-      return;
-    }
-
-    if (qLower.includes('who') || qLower.includes('siva') || qLower.includes('developer')) {
-      setAnswer('This portfolio belongs to Siva Kumar Annam, a full-stack developer building web apps, mobile apps, and AI-powered projects.');
-      return;
-    }
-
-    setAnswer('Based on the uploaded document, the app answers by retrieving the most relevant passages and combining them with local model reasoning.');
-  };
-
-  const handlePromptClick = (prompt: string) => {
-    setQuestion(prompt);
   };
 
   return (
     <View>
-      <Pressable
+      {/* File Ingestion & PDF Preview Bar */}
+      <View
         style={{
           borderWidth: 1,
           borderColor: t.border,
-          borderRadius: 14,
+          borderRadius: 16,
           backgroundColor: t.cardAlt,
-          padding: 14,
-          marginBottom: 12,
-        }}
-        onPress={pickDocument}>
-        <Text style={{ color: t.muted, fontSize: 12, fontWeight: '700', letterSpacing: 0.4 }}>UPLOADED FILE</Text>
-        <Text style={{ color: t.text, fontSize: 16, fontWeight: '700', marginTop: 6 }}>{uploadedFile}</Text>
-      </Pressable>
+          padding: 16,
+          marginBottom: 14,
+        }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+          <View style={{ flex: 1, minWidth: 200 }}>
+            <Text style={{ color: t.muted, fontSize: 11, fontWeight: '800', letterSpacing: 0.6 }}>INGESTED DOCUMENT</Text>
+            <Text style={{ color: t.text, fontSize: 16, fontWeight: '800', marginTop: 4 }}>{uploadedFileName}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Button label="Upload PDF / File" onPress={pickDocument} />
+            <Button
+              label={showPreview ? 'Hide Preview ✕' : 'Preview Document 👁'}
+              variant="secondary"
+              onPress={() => setShowPreview(!showPreview)}
+            />
+          </View>
+        </View>
 
+        {/* In-Browser PDF / Document Previewer */}
+        {showPreview && (
+          <View
+            style={{
+              marginTop: 16,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: t.border,
+              backgroundColor: t.card,
+              overflow: 'hidden',
+            }}>
+            <View
+              style={{
+                backgroundColor: t.chip,
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <Text style={{ color: t.chipText, fontSize: 12, fontWeight: '700' }}>
+                {fileUrl ? '📄 Live PDF Document Viewer' : '📄 Parsed Sample Document Preview'}
+              </Text>
+              <Text style={{ color: t.muted, fontSize: 11 }}>In-browser preview</Text>
+            </View>
+
+            {fileUrl && Platform.OS === 'web' && selectedFile?.type === 'application/pdf' ? (
+              <iframe
+                src={fileUrl}
+                style={{
+                  width: '100%',
+                  height: 380,
+                  border: 'none',
+                }}
+                title="PDF Document Preview"
+              />
+            ) : (
+              <View style={{ padding: 16, maxHeight: 240 }}>
+                <Text style={{ color: t.text, fontSize: 14, lineHeight: 22 }}>
+                  {sampleDocumentText}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+
+      {/* Question Input */}
       <TextInput
         value={question}
         onChangeText={setQuestion}
-        placeholder="Ask a question about the PDF"
+        placeholder="Ask a question about this document..."
         placeholderTextColor={t.muted}
         style={{
           backgroundColor: t.cardAlt,
           color: t.text,
           borderColor: t.border,
-          borderWidth: 1,
+          borderWidth: 1.5,
           borderRadius: 12,
-          paddingHorizontal: 14,
-          paddingVertical: 12,
+          paddingHorizontal: 16,
+          paddingVertical: 13,
           fontSize: 16,
           marginBottom: 12,
         }}
       />
 
+      {/* Feature Badges */}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
         {matches.map((m) => (
           <Chip key={m} label={m} />
         ))}
       </View>
 
+      {/* Example Prompt Chips */}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
         {examplePrompts.map((prompt) => (
-          <Chip key={prompt} label={prompt} onPress={() => handlePromptClick(prompt)} />
+          <Chip key={prompt} label={prompt} onPress={() => setQuestion(prompt)} />
         ))}
       </View>
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
-        <Button label={isLoading ? 'Processing...' : 'Ask question'} onPress={runDemo} />
+      {/* Action Button */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <Button
+          label={isStreaming ? 'Streaming Answer...' : 'Ask question with Streaming RAG'}
+          onPress={runStreamingRAG}
+        />
+        {isStreaming && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10B981' }} />
+            <Text style={{ color: '#10B981', fontSize: 12, fontWeight: '700' }}>Receiving SSE Tokens</Text>
+          </View>
+        )}
       </View>
 
+      {/* Real-time Streaming Answer Card */}
       <View
         style={{
           backgroundColor: t.cardAlt,
           borderColor: t.border,
           borderWidth: 1,
           borderRadius: 18,
-          padding: 18,
-          shadowColor: '#149DDD',
-          shadowOpacity: 0.08,
-          shadowRadius: 18,
-          shadowOffset: { width: 0, height: 10 },
+          padding: 20,
+          marginBottom: 18,
         }}>
-        <Text style={{ color: t.muted, fontSize: 12, fontWeight: '700', marginBottom: 10, letterSpacing: 0.5 }}>
-          RAG ANSWER
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <Text style={{ color: t.muted, fontSize: 11, fontWeight: '800', letterSpacing: 0.6 }}>
+            STREAMED RAG ANSWER
+          </Text>
+          <View style={{ backgroundColor: t.navActive, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+            <Text style={{ color: t.accent, fontSize: 11, fontWeight: '700' }}>Local LLM Grounded</Text>
+          </View>
+        </View>
+
+        <Text style={{ color: t.text, fontSize: 17, fontWeight: '600', lineHeight: 28 }}>
+          {answer}
+          {isStreaming && <Text style={{ color: t.accent, fontWeight: '900' }}> ▌</Text>}
         </Text>
-        <Text style={{ color: t.text, fontSize: 18, fontWeight: '700', lineHeight: 28 }}>{answer}</Text>
       </View>
 
-      <View style={{ marginTop: 18, backgroundColor: t.cardAlt, borderWidth: 1, borderColor: t.border, borderRadius: 14, padding: 14 }}>
-        <Text style={{ color: t.muted, fontWeight: '700', marginBottom: 10 }}>Source excerpts</Text>
+      {/* Source Excerpts Card */}
+      <View
+        style={{
+          backgroundColor: t.cardAlt,
+          borderWidth: 1,
+          borderColor: t.border,
+          borderRadius: 14,
+          padding: 16,
+        }}>
+        <Text style={{ color: t.muted, fontWeight: '800', fontSize: 13, marginBottom: 10, letterSpacing: 0.4 }}>
+          SOURCE EXCERPTS (Grounded Context)
+        </Text>
         {contextUsed.map((chunk, index) => (
           <View
             key={`${chunk.slice(0, 16)}-${index}`}
             style={{
-              backgroundColor: index % 2 === 0 ? t.card : 'transparent',
+              backgroundColor: t.card,
               borderWidth: 1,
               borderColor: t.border,
               borderRadius: 10,
-              padding: 10,
+              padding: 12,
               marginBottom: 8,
             }}>
             <Text style={{ color: t.text, fontSize: 14, lineHeight: 22 }}>{chunk}</Text>
