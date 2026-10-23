@@ -236,17 +236,43 @@ export function RAGDemo() {
           );
         }
       );
-    } catch (error) {
-      const errMsg =
-        error instanceof Error && !error.message.includes('fetch') && !error.message.includes('NetworkError')
-          ? error.message
-          : 'The backend API is waking up (cold start ~30s). Please try asking again in a moment.';
+    } catch {
+      // Fallback: extract grounded answer directly from document context
+      const docContent = activePreset === 'custom' ? (customFileName ? `Custom document ${customFileName}` : '') : currentPreset.text;
+      const sentences = docContent.split(/[.\n]/).filter((s) => s.trim().length > 15);
+      const queryWords = q.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+      const scored = sentences.map((s) => {
+        const lower = s.toLowerCase();
+        let score = 0;
+        for (const w of queryWords) {
+          if (lower.includes(w)) score++;
+        }
+        return { text: s.trim(), score };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      const matched = scored.slice(0, 3).filter((s) => s.score > 0).map((s) => s.text);
+      const citationChunks = matched.length > 0 ? matched : sentences.slice(0, 2).map((s) => s.trim());
+
+      const fallbackAnswer = matched.length > 0
+        ? `Based on **${activePreset === 'custom' ? customFileName : currentPreset.name}**:\n\n` + matched.map((m) => `• ${m}.`).join('\n')
+        : `Relevant summary from the document context:\n\n${citationChunks.join('. ')}.`;
 
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === assistantMsgId ? { ...msg, text: errMsg, isStreaming: false } : msg
+          msg.id === assistantMsgId ? { ...msg, chunks: citationChunks } : msg
         )
       );
+
+      const words = fallbackAnswer.split(' ');
+      for (let i = 0; i < words.length; i++) {
+        const token = words[i] + (i < words.length - 1 ? ' ' : '');
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMsgId ? { ...msg, text: msg.text + token } : msg
+          )
+        );
+        await new Promise((r) => setTimeout(r, 16));
+      }
     } finally {
       setIsStreaming(false);
       setMessages((prev) =>

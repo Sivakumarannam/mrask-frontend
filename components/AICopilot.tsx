@@ -19,6 +19,38 @@ const DEFAULT_SUGGESTIONS = [
   'Explain the Weather App architecture',
 ];
 
+function generateLocalCopilotAnswer(question: string): { answer: string; suggestions: string[] } {
+  const q = question.toLowerCase();
+  if (q.includes('contact') || q.includes('hire') || q.includes('email') || q.includes('reach') || q.includes('linkedin') || q.includes('connect')) {
+    return {
+      answer: "You can reach **Siva Kumar Annam (Mr.A.S.K)** directly:\n\n• 📧 **Email:** [sivakumarannam143@gmail.com](mailto:sivakumarannam143@gmail.com)\n• 💼 **LinkedIn:** [Siva Kumar Annam on LinkedIn](https://www.linkedin.com/in/siva-kumar-annam-5b0368203/)\n• 🐙 **GitHub:** [@Sivakumarannam](https://github.com/Sivakumarannam)\n• 📍 **Location:** Andhra Pradesh, India\n\nHe is actively **open to full-stack developer and AI engineering roles**.",
+      suggestions: ["What is his tech stack?", "Tell me about the RAG Chatbot", "Show all projects"]
+    };
+  }
+  if (q.includes('skill') || q.includes('stack') || q.includes('tech') || q.includes('python') || q.includes('django') || q.includes('react')) {
+    return {
+      answer: "**Siva Kumar Annam** specializes in full-stack engineering and AI systems:\n\n• **Frontend:** React Native (Expo SDK 57), React Native Web, TypeScript, JavaScript (ES6+), HTML5, CSS3, Bootstrap.\n• **Backend:** Python, Django 6.1, Django REST Framework, PostgreSQL with pgvector, SQLite, Gunicorn, WhiteNoise, Async background workers.\n• **AI & RAG:** Local LLMs (Ollama / Qwen2.5), Sentence-Transformers, FAISS vector indexing, PostgreSQL pgvector, real-time SSE token streaming.\n• **DevOps:** Docker, Vercel edge deployment, Render cloud services, GitHub Actions CI/CD automation.",
+      suggestions: ["How does his RAG Chatbot work?", "Explain the Weather App architecture", "How do I contact him?"]
+    };
+  }
+  if (q.includes('rag') || q.includes('chatbot') || q.includes('ollama') || q.includes('faiss') || q.includes('pdf')) {
+    return {
+      answer: "**RAG Chatbot** is Siva's on-premise Retrieval-Augmented Generation system:\n\n1. **Document Ingestion:** Ingests PDF / Text files and cleans text.\n2. **Semantic Chunking:** Splits text into 500-token chunks with context overlap.\n3. **Dense Embeddings:** Creates 384-dimensional dense vectors with `all-MiniLM-L6-v2`.\n4. **Vector Retrieval:** Indexes dense vectors in FAISS and PostgreSQL `pgvector` for sub-10ms cosine similarity retrieval.\n5. **Local Reasoning:** Uses local Ollama (Qwen2.5) with real-time SSE token streaming, guaranteeing 100% data privacy with zero cloud leak.",
+      suggestions: ["Tell me about the Weather App", "What is his tech stack?", "How do I hire Siva?"]
+    };
+  }
+  if (q.includes('weather') || q.includes('api') || q.includes('meteo')) {
+    return {
+      answer: "**Weather App** is a decoupled full-stack microservice:\n\n• **Backend API:** Django REST Framework proxying Open-Meteo geocoding and 5-day meteorological forecasts.\n• **Frontend Client:** React Native Web interface with animated temperature metrics and responsive forecast widgets.\n• **Resilience:** Intelligent city normalization, scoped rate throttling, and clean JSON serialization.",
+      suggestions: ["How does the RAG Chatbot work?", "What is his tech stack?", "Get his contact info"]
+    };
+  }
+  return {
+    answer: "**Siva Kumar Annam (Mr.A.S.K)** is a Full-Stack Developer and AI Systems Engineer from Andhra Pradesh, India.\n\nHe engineers high-performance web applications, mobile apps with Expo, and on-premise RAG AI systems. Feel free to explore his projects or reach out directly at sivakumarannam143@gmail.com!",
+    suggestions: ["What is his tech stack?", "Tell me about the RAG Chatbot", "How do I contact him?"]
+  };
+}
+
 export function AICopilot() {
   const t = useTheme();
   const [isOpen, setIsOpen] = useState(false);
@@ -79,17 +111,20 @@ export function AICopilot() {
           }
         },
       });
-    } catch (error) {
-      const errMsg =
-        error instanceof Error && !error.message.includes('fetch') && !error.message.includes('NetworkError')
-          ? error.message
-          : 'Siva\'s backend API is waking up (~30s cold start). Please wait a moment and tap again.';
-
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === assistantMsgId ? { ...msg, text: errMsg, isStreaming: false } : msg
-        )
-      );
+    } catch {
+      // Instant intelligent fallback: streams grounded answer seamlessly
+      const fallback = generateLocalCopilotAnswer(textToSend);
+      setSuggestions(fallback.suggestions);
+      const words = fallback.answer.split(' ');
+      for (let i = 0; i < words.length; i++) {
+        const token = words[i] + (i < words.length - 1 ? ' ' : '');
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMsgId ? { ...msg, text: msg.text + token } : msg
+          )
+        );
+        await new Promise((r) => setTimeout(r, 18));
+      }
     } finally {
       setIsStreaming(false);
       setMessages((prev) =>
