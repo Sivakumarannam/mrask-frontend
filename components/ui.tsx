@@ -165,7 +165,7 @@ export function Button({
           opacity: pressed ? 0.84 : 1,
         })}>
         <LinearGradient
-          colors={['#101922', '#1B2633']}
+          colors={t.primaryBtnBg as unknown as readonly [string, string, ...string[]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
@@ -173,9 +173,9 @@ export function Button({
             paddingVertical: 11,
             borderRadius: 12,
             borderWidth: 1,
-            borderColor: '#2B3A4B',
+            borderColor: t.primaryBtnBorder,
           }}>
-          <Text style={{ color: t.accent3, fontWeight: '800', fontSize: 14, letterSpacing: 0.1 }}>{label}</Text>
+          <Text style={{ color: t.primaryBtnText, fontWeight: '800', fontSize: 14, letterSpacing: 0.1 }}>{label}</Text>
         </LinearGradient>
       </Pressable>
     );

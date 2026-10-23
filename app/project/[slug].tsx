@@ -23,7 +23,17 @@ export default function ProjectDetail() {
     <Screen>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={{ flexDirection: 'row', marginTop: 12 }}>
-        <Button label={'\u2190 Back'} variant="secondary" onPress={() => router.back()} />
+        <Button
+          label={'\u2190 Back'}
+          variant="secondary"
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/projects');
+            }
+          }}
+        />
       </View>
 
       {loading && !p ? <ActivityIndicator color={t.accent} style={{ marginTop: 40 }} /> : null}

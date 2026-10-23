@@ -1,8 +1,8 @@
 import { SymbolView } from 'expo-symbols';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, usePathname, useRouter } from 'expo-router';
 import { Dimensions, Image, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { useTheme } from '@/constants/theme';
+import { useThemeContext } from '@/constants/theme';
 import { profile } from '@/data/profile';
 import { openGmail, openLink } from '@/lib/links';
 
@@ -16,53 +16,68 @@ const navItems: any[] = [
 ];
 
 export default function TabLayout() {
-  const t = useTheme();
+  const { theme: t, isDark, toggleMode } = useThemeContext();
   const router = useRouter();
+  const rawPath = usePathname();
+  const pathname = rawPath.replace(/^\/\(tabs\)/, '') || '/';
   const isMobile = Dimensions.get('window').width < 900;
 
-  const renderNavButton = (item: any) => (
-    <Pressable
-      key={item.label}
-      onPress={() => router.push(item.path as never)}
-      style={({ pressed }) => ({
-        opacity: pressed ? 0.8 : 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: isMobile ? 10 : 12,
-        paddingHorizontal: isMobile ? 10 : 12,
-        borderRadius: 10,
-        backgroundColor: item.path === '/' ? 'rgba(125,185,255,0.08)' : 'transparent',
-      })}>
-      <SymbolView
-        name={item.icon}
-        tintColor={item.path === '/' ? '#A9D2FF' : '#DDDFE4'}
-        size={isMobile ? 16 : 18}
-      />
-      {!isMobile && (
-        <Text
-          style={{
-            color: item.path === '/' ? '#A9D2FF' : '#E4E9F0',
-            fontSize: 16,
-            fontWeight: item.path === '/' ? '700' : '500',
-            marginLeft: 10,
-          }}>
-          {item.label}
-        </Text>
-      )}
-    </Pressable>
-  );
+  const isItemActive = (targetPath: string) => {
+    if (targetPath === '/') {
+      return pathname === '/';
+    }
+    if (targetPath === '/projects') {
+      return pathname === '/projects' || pathname.startsWith('/project');
+    }
+    return pathname === targetPath || pathname.startsWith(targetPath + '/');
+  };
+
+  const renderNavButton = (item: any) => {
+    const active = isItemActive(item.path);
+    return (
+      <Pressable
+        key={item.label}
+        onPress={() => router.push(item.path as never)}
+        style={({ pressed }) => ({
+          opacity: pressed ? 0.8 : 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingVertical: isMobile ? 10 : 12,
+          paddingHorizontal: isMobile ? 10 : 12,
+          borderRadius: 10,
+          backgroundColor: active ? t.navActive : 'transparent',
+        })}>
+        <SymbolView
+          name={item.icon}
+          tintColor={active ? t.accent : t.muted}
+          size={isMobile ? 16 : 18}
+        />
+        {!isMobile && (
+          <Text
+            style={{
+              color: active ? t.accent : t.navText,
+              fontSize: 16,
+              fontWeight: active ? '700' : '500',
+              marginLeft: 10,
+            }}>
+            {item.label}
+          </Text>
+        )}
+      </Pressable>
+    );
+  };
 
   if (isMobile) {
     return (
       <View style={{ flex: 1, backgroundColor: t.bg }}>
         <View
           style={{
-            backgroundColor: '#050A0F',
+            backgroundColor: t.sidebar,
             paddingTop: 28,
             paddingHorizontal: 16,
             paddingBottom: 12,
             borderBottomWidth: 1,
-            borderBottomColor: 'rgba(255,255,255,0.08)',
+            borderBottomColor: t.sidebarBorder,
           }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
             <Image
@@ -72,19 +87,57 @@ export default function TabLayout() {
                 height: 52,
                 borderRadius: 26,
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.14)',
-                backgroundColor: '#101922',
+                borderColor: t.avatarBorder,
+                backgroundColor: t.avatarBg,
               }}
             />
             <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={{ color: '#F5F7FA', fontSize: 20, fontWeight: '800' }}>{profile.displayName}</Text>
+              <Text style={{ color: t.text, fontSize: 20, fontWeight: '800' }}>{profile.displayName}</Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Pressable onPress={() => openGmail()} style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.04)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
-                <Text style={{ color: '#F1F5F9', fontWeight: '800', fontSize: 12 }}>✉</Text>
+              {/* Theme toggle on mobile */}
+              <Pressable
+                onPress={toggleMode}
+                accessibilityLabel="Toggle light/dark theme"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: t.iconBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: t.iconBorder,
+                }}>
+                <Text style={{ fontSize: 14 }}>{isDark ? '☀️' : '🌙'}</Text>
               </Pressable>
-              <Pressable onPress={() => openLink(profile.github)} style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.04)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
-                <Text style={{ color: '#F1F5F9', fontWeight: '800', fontSize: 11 }}>GH</Text>
+              <Pressable
+                onPress={() => openGmail()}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: t.iconBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: t.iconBorder,
+                }}>
+                <Text style={{ color: t.iconText, fontWeight: '800', fontSize: 13 }}>✉</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => openLink(profile.github)}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: t.iconBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: t.iconBorder,
+                }}>
+                <Text style={{ color: t.iconText, fontWeight: '800', fontSize: 11 }}>GH</Text>
               </Pressable>
             </View>
           </View>
@@ -97,7 +150,7 @@ export default function TabLayout() {
           </ScrollView>
         </View>
 
-        <View style={{ flex: 1, backgroundColor: '#0B0F13' }}>
+        <View style={{ flex: 1, backgroundColor: t.tabContentBg }}>
           <Tabs
             screenOptions={{
               headerShown: false,
@@ -123,12 +176,12 @@ export default function TabLayout() {
       <View
         style={{
           width: 300,
-          backgroundColor: '#050A0F',
+          backgroundColor: t.sidebar,
           paddingTop: 36,
           paddingHorizontal: 18,
           paddingBottom: 18,
           borderRightWidth: 1,
-          borderRightColor: 'rgba(255,255,255,0.08)',
+          borderRightColor: t.sidebarBorder,
         }}>
         <View style={{ alignItems: 'center', marginBottom: 12 }}>
           <Image
@@ -138,13 +191,13 @@ export default function TabLayout() {
               height: 120,
               borderRadius: 60,
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.14)',
-              backgroundColor: '#101922',
+              borderColor: t.avatarBorder,
+              backgroundColor: t.avatarBg,
             }}
           />
         </View>
 
-        <Text style={{ color: '#F5F7FA', fontSize: 24, fontWeight: '800', marginBottom: 16 }}>
+        <Text style={{ color: t.text, fontSize: 24, fontWeight: '800', marginBottom: 16 }}>
           {profile.displayName}
         </Text>
 
@@ -152,57 +205,95 @@ export default function TabLayout() {
           <Pressable
             onPress={() => openGmail()}
             style={{
-              width: 30,
-              height: 30,
-              borderRadius: 15,
-              backgroundColor: 'rgba(255,255,255,0.04)',
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: t.iconBg,
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.1)',
+              borderColor: t.iconBorder,
             }}>
-            <Text style={{ color: '#F1F5F9', fontWeight: '800', fontSize: 12 }}>✉</Text>
+            <Text style={{ color: t.iconText, fontWeight: '800', fontSize: 13 }}>✉</Text>
           </Pressable>
 
           <Pressable
             onPress={() => openLink(profile.github)}
             style={{
-              width: 30,
-              height: 30,
-              borderRadius: 15,
-              backgroundColor: 'rgba(255,255,255,0.04)',
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: t.iconBg,
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.1)',
+              borderColor: t.iconBorder,
             }}>
-            <Text style={{ color: '#F1F5F9', fontWeight: '800', fontSize: 11 }}>GH</Text>
+            <Text style={{ color: t.iconText, fontWeight: '800', fontSize: 11 }}>GH</Text>
           </Pressable>
 
           <Pressable
             onPress={() => openLink(profile.linkedin)}
             style={{
-              width: 30,
-              height: 30,
-              borderRadius: 15,
-              backgroundColor: 'rgba(255,255,255,0.04)',
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: t.iconBg,
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 1,
-              borderColor: 'rgba(255,255,255,0.1)',
+              borderColor: t.iconBorder,
             }}>
-            <Text style={{ color: '#F1F5F9', fontWeight: '800', fontSize: 11 }}>in</Text>
+            <Text style={{ color: t.iconText, fontWeight: '800', fontSize: 11 }}>in</Text>
           </Pressable>
         </View>
 
         <View style={{ gap: 6 }}>{navItems.map((item) => renderNavButton(item))}</View>
 
-        <View style={{ marginTop: 'auto', paddingTop: 18, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
-          <Text style={{ color: '#D9E1EA', fontSize: 12, fontWeight: '600' }}>© {profile.displayName}</Text>
+        {/* Bottom area: Theme Switcher + Copyright */}
+        <View style={{ marginTop: 'auto', paddingTop: 18 }}>
+          <Pressable
+            onPress={toggleMode}
+            accessibilityLabel="Toggle light or dark theme"
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              borderRadius: 12,
+              backgroundColor: t.iconBg,
+              borderWidth: 1,
+              borderColor: t.iconBorder,
+              opacity: pressed ? 0.75 : 1,
+              marginBottom: 16,
+            })}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={{ fontSize: 15 }}>{isDark ? '🌙' : '☀️'}</Text>
+              <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>
+                {isDark ? 'Dark Theme' : 'Light Theme'}
+              </Text>
+            </View>
+            <View
+              style={{
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: 999,
+                backgroundColor: t.navActive,
+              }}>
+              <Text style={{ color: t.accent, fontSize: 11, fontWeight: '700' }}>
+                {isDark ? 'Switch ☀️' : 'Switch 🌙'}
+              </Text>
+            </View>
+          </Pressable>
+
+          <View style={{ borderTopWidth: 1, borderTopColor: t.sidebarBorder, paddingTop: 14 }}>
+            <Text style={{ color: t.muted, fontSize: 12, fontWeight: '600' }}>© {profile.displayName}</Text>
+          </View>
         </View>
       </View>
 
-      <View style={{ flex: 1, backgroundColor: '#0B0F13' }}>
+      <View style={{ flex: 1, backgroundColor: t.tabContentBg }}>
         <Tabs
           screenOptions={{
             headerShown: false,

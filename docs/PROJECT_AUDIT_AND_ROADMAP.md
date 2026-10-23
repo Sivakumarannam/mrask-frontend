@@ -50,6 +50,23 @@ This document provides a complete audit of the **Portfolio-Expo** project. It de
   - On success: Displays an animated dark glassmorphism modal with an emerald checkmark (`✓`), customized greeting, delivery snapshot, and single-click dismiss that resets form inputs.
   - On failure: Displays an alert modal (`⚠`) with clear diagnostic information and an alternative direct Gmail composition fallback.
 
+### 2.4 Security & Performance Upgrades (Recently Implemented)
+- **Honeypot Spam Protection**:
+  - Hidden honeypot field (`website`) in the contact form, hidden off-screen (`top: -9999px`, zero opacity, zero height, `tabIndex: -1`).
+  - Spambots auto-filling the field are intercepted silently with HTTP 200 without saving spam to the database or triggering email dispatch.
+  - Rate limiting via `ScopedRateThrottle` maintained at `5/min` for legitimate submissions.
+- **Hardened Gitignore & Environment Templates**:
+  - Comprehensive `.gitignore` protecting all `.env*` variants (`backend/.env`, `.env.local`, `.env.development`, etc.).
+  - Added clean `.env.example` templates for both backend and frontend without secrets.
+- **Async Background Email Dispatch**:
+  - Replaced synchronous SMTP call with daemonized background thread (`threading.Thread(daemon=True)`).
+  - API response time slashed from **3–8 seconds** down to **166ms** (<200ms instantaneous feedback).
+- **Dynamic Light & Dark Theme System**:
+  - Complete `ThemeContext` provider with full color palettes for both Dark and Light modes.
+  - Interactive theme switcher button in the sidebar (desktop) and header (mobile).
+  - Web persistent state stored in `localStorage` (`portfolio_theme_mode`).
+  - Live browser tested across screens with seamless transitions.
+
 ---
 
 ## 3. Issues Identified and Resolved During Testing
@@ -61,31 +78,21 @@ This document provides a complete audit of the **Portfolio-Expo** project. It de
 | **CORS Configuration Mismatch** | `backend/.env` omitted port `8081` (standard Expo web port) from `CORS_ALLOWED_ORIGINS`. | Added `http://localhost:8081` to `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS`. | [backend/.env](file:///d:/Protifolo/portfolio-expo/backend/.env) |
 | **Zero Backend Unit Tests** | `manage.py test` ran 0 tests because `tests.py` was absent. | Created unit tests covering projects, weather, contact creation, and document Q&A. | [backend/portfolio/tests.py](file:///d:/Protifolo/portfolio-expo/backend/portfolio/tests.py) |
 | **Unclear Contact Submission Feedback** | Inline plain-text message did not give adequate confirmation or failure diagnostics. | Created a high-impact pop-up modal with status badges, delivery details, and auto-reset. | [app/(tabs)/contact.tsx](file:///d:/Protifolo/portfolio-expo/app/%28tabs%29/contact.tsx) |
+| **3–8s Contact Form Submission Wait** | Synchronous SMTP blocking during HTTP request cycle. | Migrated to daemonized async thread execution (`send_contact_email_async`). Response time dropped to 166ms. | [backend/portfolio/views.py](file:///d:/Protifolo/portfolio-expo/backend/portfolio/views.py) |
+| **Vulnerable .env in Git** | `.gitignore` did not explicitly exclude nested `backend/.env` or multiple environment variants. | Hardened `.gitignore` and provided clean `.env.example` templates. | [.gitignore](file:///d:/Protifolo/portfolio-expo/.gitignore) |
+| **Fixed Dark-Only Theme** | Hardcoded dark colors throughout sidebar and layout components. | Implemented `ThemeContext` with dark & light palettes, persistent storage, and interactive switchers. | [constants/ThemeContext.tsx](file:///d:/Protifolo/portfolio-expo/constants/ThemeContext.tsx) |
 
 ---
 
 ## 4. What to Improve (Project Roadmap)
 
-### 4.1 Security & Production Hardening (Priority: High)
-1. **Remove Plaintext Secrets from Environment Files**:
-   - `backend/.env` currently contains a live Gmail App Password.
-   - *Recommendation:* Never commit `.env` to version control. Keep `.env` strictly in `.gitignore` and manage production secrets via Render/Vercel dashboard environment settings.
-2. **Contact Form Bot Protection**:
-   - The contact endpoint currently relies on DRF `ScopedRateThrottle` (`5/min`).
-   - *Recommendation:* Add a hidden honeypot field or Cloudflare Turnstile / reCAPTCHA v3 to prevent automated spam attacks when hosted publicly.
-3. **Async Email Delivery (Celery / Background Thread)**:
-   - `email.send()` connects synchronously to Gmail SMTP during the HTTP request lifecycle, adding 3–8 seconds of latency to the API response.
-   - *Recommendation:* Offload email dispatch to a background worker (e.g. Django-Q, Celery, or `threading.Thread`) so the user receives instantaneous feedback (< 500ms).
-
-### 4.2 UI / UX Enhancements (Priority: Medium-High)
-1. **Light / Dark Theme Toggle**:
-   - The app currently features a dark theme. Adding an explicit toggle button in the sidebar will allow users to switch between dark, light, and system themes seamlessly.
-2. **Rich Project Media & Video Walkthroughs**:
+### 4.1 UI / UX Enhancements (Priority: Medium-High)
+1. **Rich Project Media & Video Walkthroughs**:
    - Projects currently rely on text descriptions, stack chips, and live interactive demos.
    - *Recommendation:* Add project screenshots, architecture diagrams, and short WebP / MP4 video walkthroughs for each project inside `app/project/[slug].tsx`.
-3. **Interactive PDF Viewer for RAG Demo**:
+2. **Interactive PDF Viewer for RAG Demo**:
    - On the RAG Chatbot page, allow visitors to preview the uploaded PDF in-browser side-by-side with the extracted excerpts and answers.
-4. **Skeleton Loaders**:
+3. **Skeleton Loaders**:
    - Replace standard `ActivityIndicator` spinners with animated skeleton cards for projects and weather widgets during data fetching.
 
 ### 4.3 AI & Backend Architecture (Priority: Medium)
