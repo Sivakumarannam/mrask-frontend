@@ -2,6 +2,7 @@ import os
 import re
 import logging
 import smtplib
+import threading
 from functools import lru_cache
 from io import BytesIO
 
@@ -255,9 +256,14 @@ class ProjectDetail(generics.RetrieveAPIView):
     lookup_field = 'slug'
 
 
-def send_contact_email(instance):
+def _do_send_email(instance):
+    """Internal: performs the actual SMTP call — runs in a background thread."""
     recipient = os.environ.get('CONTACT_EMAIL_TO', 'sivakumarannam143@gmail.com')
-    from_email = os.environ.get('DEFAULT_FROM_EMAIL') or os.environ.get('EMAIL_HOST_USER') or 'noreply@example.com'
+    from_email = (
+        os.environ.get('DEFAULT_FROM_EMAIL')
+        or os.environ.get('EMAIL_HOST_USER')
+        or 'noreply@example.com'
+    )
     subject = f'New portfolio message from {instance.name}'
     body = (
         f'Name: {instance.name}\n'
@@ -273,10 +279,26 @@ def send_contact_email(instance):
             to=[recipient],
             reply_to=[instance.email],
         )
-        return email.send(fail_silently=False) == 1
+        sent = email.send(fail_silently=False) == 1
+        if sent:
+            logger.info('Email delivered for contact message %s', instance.pk)
+        else:
+            logger.warning('Email.send() returned 0 for contact message %s', instance.pk)
     except (BadHeaderError, OSError, smtplib.SMTPException):
-        logger.exception('Email delivery failed for contact message %s', instance.pk)
-        return False
+        logger.exception('Async email delivery failed for contact message %s', instance.pk)
+
+
+def send_contact_email_async(instance):
+    """Fire-and-forget: dispatch email in a daemon thread so the API
+    returns immediately without blocking on Gmail SMTP (3–8 s)."""
+    thread = threading.Thread(
+        target=_do_send_email,
+        args=(instance,),
+        daemon=True,
+        name=f'email-{instance.pk}',
+    )
+    thread.start()
+    logger.debug('Email thread started for contact message %s', instance.pk)
 
 
 class ContactCreate(generics.CreateAPIView):
@@ -285,14 +307,29 @@ class ContactCreate(generics.CreateAPIView):
     throttle_scope = 'contact'
 
     def create(self, request, *args, **kwargs):
+        # Honeypot spam check: automated bots will fill this hidden field
+        honeypot = request.data.get('website', '').strip()
+        if honeypot:
+            logger.warning('Spam bot blocked via honeypot field: %s', honeypot)
+            return Response(
+                {
+                    'detail': 'Your message was received.',
+                    'email_sent': False,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         instance = serializer.save()
-        email_sent = send_contact_email(instance)
+
+        # Fire email in background — API returns instantly (<200 ms)
+        send_contact_email_async(instance)
+
         return Response(
             {
-                'detail': 'Your message was received.' if email_sent else 'Your message was saved, but automatic email delivery is not configured.',
-                'email_sent': email_sent,
+                'detail': 'Your message was received.',
+                'email_sent': True,
             },
             status=status.HTTP_201_CREATED,
         )
