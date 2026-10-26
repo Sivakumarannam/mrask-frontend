@@ -327,7 +327,7 @@ EDUCATION & CREDENTIALS:
                     Associate Software Engineer | Automation & Platform Engineer
                   </Text>
                   <Text style={{ color: '#38bdf8', fontSize: 11, fontWeight: '700' }}>
-                    Nov 2024 – Present (~1.5 yrs)
+                    Nov 2024 – Present (~2 yrs)
                   </Text>
                 </View>
                 <Text style={{ color: '#10b981', fontSize: 12, fontWeight: '700', marginTop: 1 }}>
