@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
+import { AudioWaveform } from '@/components/AudioWaveform';
 import { useTheme } from '@/constants/theme';
 import { profile } from '@/data/profile';
 import { streamCopilot } from '@/lib/api';
@@ -124,6 +125,7 @@ export function AICopilot() {
 
   // Option 1: Voice Mode States
   const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [isVoiceResponseEnabled, setIsVoiceResponseEnabled] = useState(false);
   const recognitionRef = useRef<any>(null);
 
@@ -160,6 +162,9 @@ export function AICopilot() {
       if (clean) {
         const utterance = new SpeechSynthesisUtterance(clean);
         utterance.rate = 1.05;
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
         window.speechSynthesis.speak(utterance);
       }
     }
@@ -507,6 +512,12 @@ export function AICopilot() {
               ))}
             </ScrollView>
           </View>
+
+          {/* Pro Audio Waveform Spectrum when listening or speaking */}
+          <AudioWaveform
+            active={isListening || isSpeaking}
+            mode={isListening ? 'listening' : 'speaking'}
+          />
 
           {/* Input Box with Microphone Voice Input Button */}
           <View

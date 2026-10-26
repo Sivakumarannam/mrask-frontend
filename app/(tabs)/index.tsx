@@ -3,8 +3,10 @@ import { useRouter } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 
 import { ArchitectureVisualizer } from '@/components/ArchitectureVisualizer';
+import { EnterpriseIncidentSimulator } from '@/components/EnterpriseIncidentSimulator';
 import { GitHubLiveActivity } from '@/components/GitHubLiveActivity';
 import { ProjectCard } from '@/components/ProjectCard';
+import { PWAInstallBanner } from '@/components/PWAInstallBanner';
 import { Button, Card, Chip, Heading, Screen, Stat, Typewriter } from '@/components/ui';
 import { gradient, useTheme } from '@/constants/theme';
 import { profile, skillGroups } from '@/data/profile';
@@ -18,6 +20,9 @@ export default function Home() {
 
   return (
     <Screen>
+      {/* PWA Offline Install Banner */}
+      <PWAInstallBanner />
+
       <View style={{ paddingTop: 8 }}>
         <View
           style={{
@@ -49,6 +54,7 @@ export default function Home() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 22 }}>
             <Button label="Email me" onPress={() => openGmail()} />
             <Button label="Explore projects" variant="secondary" onPress={() => router.push('/projects')} />
+            <Button label="⚡ Live System Status" variant="secondary" onPress={() => router.push('/status' as any)} />
             <Button label="GitHub" variant="secondary" onPress={() => openLink(profile.github)} />
           </View>
         </View>
@@ -59,6 +65,11 @@ export default function Home() {
         <Stat value={String(projects.length)} label="Enterprise & Solo" />
         <Stat value="3" label="Platforms" />
         <Stat value="Python" label="Django + Postgres" />
+      </View>
+
+      {/* Interactive Enterprise Incident Simulator */}
+      <View style={{ marginTop: 20 }}>
+        <EnterpriseIncidentSimulator />
       </View>
 
       <Heading sub="Tools and technologies I use to deliver complete products">Skills</Heading>

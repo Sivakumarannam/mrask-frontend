@@ -1,0 +1,42 @@
+{
+  "name": "Mr.A.S.K | Siva Kumar Annam Portfolio",
+  "short_name": "Mr.A.S.K",
+  "description": "Production Portfolio & System Architecture Studio of Siva Kumar Annam - Full-Stack, Python & AI Engineer",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05070A",
+  "theme_color": "#149DDD",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["portfolio", "developer", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Projects",
+      "url": "/projects",
+      "description": "View enterprise & AI projects"
+    },
+    {
+      "name": "System Status",
+      "url": "/status",
+      "description": "View live system health and telemetry"
+    },
+    {
+      "name": "Contact Siva",
+      "url": "/contact",
+      "description": "Direct contact channels"
+    }
+  ]
+}

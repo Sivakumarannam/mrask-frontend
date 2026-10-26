@@ -1,6 +1,18 @@
 // Master project data synchronized directly with Siva's verified resumes.
 // Includes enterprise production work (Tata Communications) and flagship AI/DevOps systems.
 
+export type ProjectImage = {
+  url: string;
+  caption: string;
+  technicalDetails: string;
+};
+
+export type ProjectArchitecture = {
+  description: string;
+  flow: string[];
+  metrics: { label: string; value: string }[];
+};
+
 export type Project = {
   id: string;
   title: string;
@@ -13,6 +25,8 @@ export type Project = {
   github: string;
   demoUrl?: string;
   demoKind?: 'weather' | 'rag' | '';
+  images: [ProjectImage, ProjectImage];
+  architecture: ProjectArchitecture;
 };
 
 export const projects: Project[] = [
@@ -41,6 +55,37 @@ export const projects: Project[] = [
     ],
     github: 'https://github.com/Sivakumarannam',
     demoKind: '',
+    images: [
+      {
+        url: '/images/projects/sevone_1.jpg',
+        caption: 'SevOne NMS Production Telemetry & NOC Dashboard',
+        technicalDetails:
+          'Live ingestion and correlation of 5,000+ SNMP OIDs and NetFlow telemetry streams across core routers and carrier circuits, alerting on packet loss and latency spikes.',
+      },
+      {
+        url: '/images/projects/sevone_2.jpg',
+        caption: 'Automated Incident Remediation & ServiceNow SLA Flow',
+        technicalDetails:
+          'Event-driven Python daemon listens to threshold breaches, executes automated diagnostic checks, triggers disk/cache cleanup, and auto-generates SLA-tracked ServiceNow incident tickets.',
+      },
+    ],
+    architecture: {
+      description:
+        'A high-reliability telecom telemetry pipeline. Core network devices broadcast SNMP traps and IPFIX/NetFlow telemetry into SevOne and Assure1. Python automation daemons poll SevOne REST APIs, run threshold-based health heuristics, perform automated remediation commands via SSH, and push structured RCA logs into ServiceNow for L2/L3 NOC teams.',
+      flow: [
+        'Routers/Switches ➔ SNMP & NetFlow Polling (5,000+ streams)',
+        'SevOne NMS & Assure1 ➔ Correlation & Threshold Breach Alerting',
+        'Python Event Listener ➔ Validates Incident Severity & State',
+        'Automation Engine ➔ Runs Diagnostic Runbook / Log Rotation via SSH',
+        'ServiceNow API ➔ Dispatches P1/P2 Ticket with RCA Telemetry',
+      ],
+      metrics: [
+        { label: 'Operational Effort Cut', value: '35%' },
+        { label: 'Incident Detection Time', value: '45m ➔ 20m' },
+        { label: 'Correlated Metrics', value: '5,000+' },
+        { label: 'SLA Adherence', value: '99.8%' },
+      ],
+    },
   },
   {
     id: 'telecom-db-migration',
@@ -66,6 +111,37 @@ export const projects: Project[] = [
     ],
     github: 'https://github.com/Sivakumarannam',
     demoKind: '',
+    images: [
+      {
+        url: '/images/projects/telecom_db_1.jpg',
+        caption: 'Schema Mapping & DBeaver Dual-Engine Validation Studio',
+        technicalDetails:
+          'Dual database console running automated Python verification jobs comparing row counts, checksum hashes, and foreign key constraints across MySQL and PostgreSQL schemas.',
+      },
+      {
+        url: '/images/projects/telecom_db_2.jpg',
+        caption: 'Query Latency Optimization & Index Benchmarking',
+        technicalDetails:
+          'EXPLAIN ANALYZE comparison showing multi-table join execution time slashed from 3.2 seconds to 0.4 seconds utilizing PostgreSQL compound B-Tree indexes and Python in-memory caching.',
+      },
+    ],
+    architecture: {
+      description:
+        'Zero-downtime database modernization pipeline. Legacy MySQL instances were systematically analyzed, data types mapped to strict PostgreSQL equivalents, and data migrated in chunks via high-throughput Python/Perl ETL scripts. Custom query rewrites replaced nested MySQL subqueries with PostgreSQL CTEs and window functions.',
+      flow: [
+        'MySQL Source ➔ Read Replica Chunk Extraction via Python',
+        'Transform Engine ➔ Data Type Casts & Timestamp Normalization',
+        'PostgreSQL Target ➔ Bulk Ingestion with Disabled Index Mode',
+        'Optimization Phase ➔ B-Tree Index Rebuild & CTE Query Rewriting',
+        'Verification Suite ➔ Row Hash & Checksum Automated Validation',
+      ],
+      metrics: [
+        { label: 'Query Latency Drop', value: '3.2s ➔ 0.4s' },
+        { label: 'Database Strain Reduction', value: '30%' },
+        { label: 'Data Loss Rate', value: '0.00%' },
+        { label: 'Downtime During Cutover', value: '0 minutes' },
+      ],
+    },
   },
   {
     id: 'rag-chatbot',
@@ -93,6 +169,37 @@ export const projects: Project[] = [
     ],
     github: 'https://github.com/Sivakumarannam/rag-chatbot-langchain-ollama',
     demoKind: 'rag',
+    images: [
+      {
+        url: '/images/projects/rag_1.jpg',
+        caption: 'Split-Screen Document Intelligence & Real-Time Chat Studio',
+        technicalDetails:
+          'Interactive workspace displaying document preview with highlighted grounded citations side-by-side with an LLM token streaming terminal.',
+      },
+      {
+        url: '/images/projects/rag_2.jpg',
+        caption: 'Dense Vector Pipeline & FAISS Similarity Search Engine',
+        technicalDetails:
+          '384-dimensional vector embedding space visualizer demonstrating cosine similarity clustering and top-K semantic document passage retrieval in under 4ms.',
+      },
+    ],
+    architecture: {
+      description:
+        'A local-first Generative AI pipeline. Documents are parsed into 500-token chunks with 50-token overlap, transformed into 384-dimensional dense vectors using Sentence-Transformers (all-MiniLM-L6-v2), and stored in an in-memory FAISS vector index. User queries are embedded on the fly, matched against top-k similar chunks, and synthesized by Ollama Qwen2.5 with citation grounding.',
+      flow: [
+        'Document Ingestion ➔ PyPDF extracts text & structural metadata',
+        'Semantic Chunking ➔ Overlapping chunks (500 tokens, 50 overlap)',
+        'Vector Embedding ➔ Sentence-Transformers generates 384-d vectors',
+        'FAISS Index ➔ Sub-millisecond Cosine Similarity top-3 retrieval',
+        'Ollama LLM ➔ Augmented prompt synthesized with SSE token streaming',
+      ],
+      metrics: [
+        { label: 'Retrieval Latency', value: '< 4ms' },
+        { label: 'Embedding Dimensions', value: '384-dim' },
+        { label: 'Cloud API Cost', value: '$0 (Self-Hosted)' },
+        { label: 'Citation Grounding', value: '100% Verifiable' },
+      ],
+    },
   },
   {
     id: 'weather-app',
@@ -118,6 +225,37 @@ export const projects: Project[] = [
     ],
     github: 'https://github.com/Sivakumarannam/weather_API_Backup',
     demoKind: 'weather',
+    images: [
+      {
+        url: '/images/projects/weather_1.jpg',
+        caption: 'Glassmorphic 5-Day Weather & Meteorological Forecast Studio',
+        technicalDetails:
+          'Dark-mode glassmorphic interface showing live temperature, humidity, wind speed, pressure, and hourly forecast telemetry.',
+      },
+      {
+        url: '/images/projects/weather_2.jpg',
+        caption: 'Django REST Microservice Architecture & Geocoding Pipeline',
+        technicalDetails:
+          'High-availability Django REST API handling geocoding name resolution, rate limiting (30 req/min), in-memory caching, and Open-Meteo payload normalization.',
+      },
+    ],
+    architecture: {
+      description:
+        'A microservice architecture decoupling client interfaces from meteorological data providers. Django REST Framework serves as an intelligent proxy layer that resolves geographic city queries to latitude/longitude coordinates, caches forecast responses in memory, applies client rate-limiting, and normalizes international WMO codes.',
+      flow: [
+        'Client Query ➔ Sends city name or coordinates to Django API',
+        'Rate Limiting & Cache ➔ Enforces 30 req/min limit & checks cache hit',
+        'Geocoding Resolver ➔ Converts city name to exact Lat/Lon coordinates',
+        'Open-Meteo Upstream ➔ Requests current metrics & 5-day hourly forecast',
+        'Serializer & Formatter ➔ Normalizes WMO codes & delivers JSON payload',
+      ],
+      metrics: [
+        { label: 'API Response Time', value: '< 180ms' },
+        { label: 'Cache Hit Rate', value: '78%' },
+        { label: 'Rate Limiting', value: '30 req/min' },
+        { label: 'Global Coverage', value: '100% Worldwide' },
+      ],
+    },
   },
   {
     id: 'gitops-platform',
@@ -143,5 +281,36 @@ export const projects: Project[] = [
     ],
     github: 'https://github.com/Sivakumarannam',
     demoKind: '',
+    images: [
+      {
+        url: '/images/projects/gitops_1.jpg',
+        caption: 'GitHub Actions Multi-Stage CI/CD Pipeline Dashboard',
+        technicalDetails:
+          'Automated pipeline visualization showing parallel test runs, SonarQube code quality gates, container image builds, and automated Docker registry publishing.',
+      },
+      {
+        url: '/images/projects/gitops_2.jpg',
+        caption: 'Kubernetes Production Cluster Topology & Ingress Architecture',
+        technicalDetails:
+          'Declarative Kubernetes infrastructure diagram with NGINX Ingress Controller, Pod auto-scaling, ConfigMaps, Secrets, and Terraform AWS cloud provisioning.',
+      },
+    ],
+    architecture: {
+      description:
+        'A declarative GitOps delivery engine. Every git commit triggers an automated GitHub Actions runner that executes linting, unit testing, and SonarQube security scanning. Upon passing, a multi-stage Docker container is built, scanned for CVE vulnerabilities, tagged with the git commit SHA, and pushed to AWS ECR. Kubernetes cluster manifests are reconciled declaratively.',
+      flow: [
+        'Developer Commit ➔ Pushed to GitHub repository main branch',
+        'CI Runner ➔ Parallel test suite & SonarQube quality gate execution',
+        'Docker Multi-Stage Build ➔ Minimal image tagged with Git SHA',
+        'Artifact Registry ➔ Immutable image stored in container registry',
+        'Kubernetes CD ➔ Manifest rollout with zero-downtime rolling update',
+      ],
+      metrics: [
+        { label: 'Deployment Lead Time', value: '< 6 minutes' },
+        { label: 'Code Quality Gate', value: '100% Passed' },
+        { label: 'Deployment Downtime', value: '0 seconds' },
+        { label: 'Infrastructure Repeatability', value: '100% Terraform' },
+      ],
+    },
   },
 ];

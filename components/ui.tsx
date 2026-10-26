@@ -203,17 +203,23 @@ export function Card({ children, accent = false }: { children: ReactNode; accent
     <View
       style={{
         backgroundColor: t.card,
-        borderColor: t.border,
+        borderColor: accent ? 'rgba(125, 185, 255, 0.22)' : t.border,
         borderWidth: 1,
-        borderRadius: 18,
-        padding: 18,
-        paddingTop: accent ? 20 : 18,
+        borderRadius: 20,
+        padding: 20,
+        paddingTop: accent ? 22 : 20,
         marginBottom: 16,
         overflow: 'hidden',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.16,
+        shadowRadius: 16,
+        // @ts-ignore
+        backdropFilter: Platform.OS === 'web' ? 'blur(14px)' : undefined,
       }}>
       {accent ? (
         <LinearGradient
-          colors={['#7DB9FF', '#1B2633']}
+          colors={['#38BDF8', '#818CF8', '#1D2731']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3 }}
@@ -232,17 +238,19 @@ export function Stat({ value, label }: { value: string; label: string }) {
         flexGrow: 1,
         minWidth: 142,
         backgroundColor: t.card,
-        borderColor: t.border,
+        borderColor: 'rgba(125, 185, 255, 0.14)',
         borderWidth: 1,
         borderRadius: 18,
-        padding: 16,
+        padding: 18,
         shadowColor: '#149DDD',
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.08,
         shadowRadius: 14,
-        shadowOffset: { width: 0, height: 8 },
+        shadowOffset: { width: 0, height: 6 },
+        // @ts-ignore
+        backdropFilter: Platform.OS === 'web' ? 'blur(10px)' : undefined,
       }}>
-      <Text style={{ color: t.accent, fontSize: 28, fontWeight: '800' }}>{value}</Text>
-      <Text style={{ color: t.muted, fontSize: 14, marginTop: 2, lineHeight: 18 }}>{label}</Text>
+      <Text style={{ color: t.accent, fontSize: 28, fontWeight: '800', letterSpacing: -0.5 }}>{value}</Text>
+      <Text style={{ color: t.muted, fontSize: 13, marginTop: 4, lineHeight: 18, fontWeight: '600' }}>{label}</Text>
     </View>
   );
 }

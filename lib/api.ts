@@ -54,18 +54,28 @@ export async function getProjects(): Promise<{ projects: Project[]; source: 'api
 
     const apiMap = new Map<string, Project>();
     for (const p of data) {
+      const local = localProjects.find((x) => x.id === p.slug);
       apiMap.set(p.slug, {
         id: p.slug,
         title: p.title,
         tagline: p.tagline,
         role: p.role,
         summary: p.summary,
-        highlights: p.highlights ?? [],
-        stack: p.stack ?? [],
-        steps: p.steps ?? [],
-        github: p.github_url,
-        demoUrl: p.demo_url || undefined,
-        demoKind: p.demo_kind,
+        highlights: p.highlights ?? (local?.highlights ?? []),
+        stack: p.stack ?? (local?.stack ?? []),
+        steps: p.steps ?? (local?.steps ?? []),
+        github: p.github_url || (local?.github ?? ''),
+        demoUrl: p.demo_url || (local?.demoUrl ?? undefined),
+        demoKind: p.demo_kind || (local?.demoKind ?? ''),
+        images: local?.images || [
+          { url: '/images/projects/sevone_1.jpg', caption: p.title, technicalDetails: p.summary },
+          { url: '/images/projects/sevone_2.jpg', caption: 'Architecture Visualizer', technicalDetails: p.tagline },
+        ],
+        architecture: local?.architecture || {
+          description: p.summary,
+          flow: p.steps ?? [],
+          metrics: [],
+        },
       });
     }
 

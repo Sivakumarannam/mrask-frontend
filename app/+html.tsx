@@ -85,10 +85,34 @@ export default function Root({ children }: { children: ReactNode }) {
         />
         <meta name="twitter:image" content="https://mrask-frontend.vercel.app/profile-photo.0fb2fb9a00e099716e9102c917997f7f.png" />
 
+        {/* PWA Manifest & Mobile Standalone Tags */}
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Mr.A.S.K" />
+
         {/* JSON-LD Structured Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: structuredData }}
+        />
+
+        {/* Service Worker Registration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                    console.log('SW registration error:', err);
+                  });
+                });
+              }
+            `,
+          }}
         />
 
         <ScrollViewStyleReset />
