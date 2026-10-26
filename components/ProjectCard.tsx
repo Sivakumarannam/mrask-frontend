@@ -28,16 +28,16 @@ export function ProjectCard({ p }: { p: Project }) {
       <Text style={[styles.tagline, { color: t.accent }]}>{p.tagline}</Text>
       <Text style={[styles.summary, { color: t.muted }]}>{p.summary}</Text>
 
-      {/* 2-Image Showcase: Left Side Image, Right Side Description for Both Views */}
+      {/* 2-Image Showcase: Left Side Image View 1 & Right Side Description | Left Side Image View 2 & Right Side Description */}
       {images.length >= 2 ? (
         <View style={[styles.dualShowcaseBox, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
           <View style={styles.showcaseHeader}>
             <Text style={[styles.showcaseLabel, { color: t.accent }]}>
-              📸 PRODUCTION ARCHITECTURE & RUNTIME VISUALS (2 VIEWS)
+              📸 SYSTEM SCREENSHOTS & DETAILED BREAKDOWNS (2 VIEWS)
             </Text>
           </View>
 
-          {/* Row 1: Left Side Image 1, Right Side Description 1 */}
+          {/* Row 1: Left Side Image View 1, Right Side Description View 1 */}
           <View style={styles.splitRow}>
             <Pressable
               onPress={() => router.push(('/project/' + p.id) as any)}
@@ -48,14 +48,14 @@ export function ProjectCard({ p }: { p: Project }) {
                 resizeMode="cover"
               />
               <View style={styles.imageOverlayBadge}>
-                <Text style={styles.overlayBadgeText}>🔍 View 1: Architecture</Text>
+                <Text style={styles.overlayBadgeText}>🖼️ View 1 Image (Click to Expand)</Text>
               </View>
             </Pressable>
 
             <View style={[styles.rightDescCol, { backgroundColor: t.card, borderColor: t.border }]}>
               <View style={styles.badgePillRow}>
                 <Text style={[styles.viewPill, { color: t.accent, borderColor: t.accent }]}>
-                  VIEW 01 / ARCHITECTURE
+                  VIEW 1 DESCRIPTION / ARCHITECTURE
                 </Text>
               </View>
               <Text style={[styles.captionTitle, { color: t.text }]}>
@@ -67,7 +67,7 @@ export function ProjectCard({ p }: { p: Project }) {
             </View>
           </View>
 
-          {/* Row 2: Down Left Side View 2 Image, Right Side Description 2 */}
+          {/* Row 2: Down Left Side Image View 2, Right Side Description View 2 */}
           <View style={[styles.splitRow, { marginTop: 14 }]}>
             <Pressable
               onPress={() => router.push(('/project/' + p.id) as any)}
@@ -78,14 +78,14 @@ export function ProjectCard({ p }: { p: Project }) {
                 resizeMode="cover"
               />
               <View style={styles.imageOverlayBadge}>
-                <Text style={styles.overlayBadgeText}>🔍 View 2: Runtime Operations</Text>
+                <Text style={styles.overlayBadgeText}>🖼️ View 2 Image (Click to Expand)</Text>
               </View>
             </Pressable>
 
             <View style={[styles.rightDescCol, { backgroundColor: t.card, borderColor: t.border }]}>
               <View style={styles.badgePillRow}>
                 <Text style={[styles.viewPill, { color: '#10B981', borderColor: '#10B981' }]}>
-                  VIEW 02 / AUTOMATION RUNTIME
+                  VIEW 2 DESCRIPTION / RUNTIME OPERATIONS
                 </Text>
               </View>
               <Text style={[styles.captionTitle, { color: t.text }]}>

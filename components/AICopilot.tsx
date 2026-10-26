@@ -22,9 +22,142 @@ const DEFAULT_SUGGESTIONS = [
 ];
 
 function generateLocalCopilotAnswer(question: string): { answer: string; suggestions: string[] } {
-  const q = question.toLowerCase();
+  const q = question.toLowerCase().trim();
 
-  // Contact / Hire
+  // 1. APIs Used & Rate Limits
+  if (
+    q.includes('api') ||
+    q.includes('apis') ||
+    q.includes('endpoint') ||
+    q.includes('endpoints') ||
+    q.includes('urls') ||
+    q.includes('route') ||
+    q.includes('services') ||
+    q.includes('microservice')
+  ) {
+    if (q.includes('rate') || q.includes('limit') || q.includes('throttle') || q.includes('quota')) {
+      return {
+        answer: `**Production APIs & Rate Limiting Architecture** for this portfolio:\n\n1. **Rate Limiting Policies (Django REST Framework \`ScopedRateThrottle\`):**\n• \`/api/contact/\`: **5 requests/minute** (Strict anti-spam & honeypot protection for email submission).\n• \`/api/weather/\`: **30 requests/minute** (Upstream Open-Meteo proxy protection).\n• \`/api/rag/ask/\` & \`/api/rag/stream/\`: **30 requests/minute** (Vector search & dense embeddings compute protection).\n• \`/api/copilot/chat/\` & \`/api/copilot/stream/\`: **30 requests/minute** (LLM inference streaming protection).\n• General endpoints (\`/api/projects/\`, \`/api/health/\`): **60 requests/minute** per IP with burst dampening.\n\n2. **Core Production Endpoints in this System:**\n• \`GET /api/projects/\` — Live PostgreSQL project catalog with stack filtering.\n• \`GET /api/health/\` — Real-time PostgreSQL database connectivity & uptime health ping.\n• \`GET /api/status/\` — Edge latency diagnostic measuring Vercel, Render & DB roundtrips.\n• \`GET /api/weather/?city={city}\` — Geocoding coordinates & 5-day meteorological forecasts.\n• \`POST /api/rag/stream/\` — Multipart document upload, dense vector indexing & real-time SSE streaming.\n• \`POST /api/copilot/stream/\` — AI portfolio assistant with interactive token streaming.\n• \`POST /api/contact/\` — Honeypot-shielded contact form with PostgreSQL storage & async Gmail SMTP.`,
+        suggestions: [
+          'How does the RAG pipeline work?',
+          'What is his full tech stack?',
+          'How do I hire Siva?',
+        ],
+      };
+    }
+
+    return {
+      answer: `This portfolio is powered by **7 core production REST & SSE API endpoints** built with **Django REST Framework**:\n\n• **1. Project Catalog:** \`GET /api/projects/\` (Live PostgreSQL database with role & stack tags)\n• **2. RAG Document Intelligence:** \`POST /api/rag/stream/\` & \`POST /api/rag/ask/\` (FAISS vector search & SSE token streaming)\n• **3. AI Copilot Chat:** \`POST /api/copilot/stream/\` & \`POST /api/copilot/chat/\` (Interactive streaming copilot with voice ready)\n• **4. Weather Microservice:** \`GET /api/weather/?city={name}\` (Open-Meteo proxy with city normalization & caching)\n• **5. Contact Dispatch:** \`POST /api/contact/\` (Honeypot-protected form with DB storage & background Gmail SMTP)\n• **6. System Health & DB Ping:** \`GET /api/health/\` (PostgreSQL live connection & engine stats)\n• **7. Edge Latency Benchmarks:** \`GET /api/status/\` (Roundtrip latency metrics)\n\nAll endpoints enforce scoped rate limits (\`5\` to \`30 req/min\`) and CORS origin whitelisting.`,
+      suggestions: [
+        'What are the API rate limits?',
+        'How does the RAG pipeline work?',
+        'What is his tech stack?',
+      ],
+    };
+  }
+
+  // 2. Rate Limits specifically
+  if (
+    q.includes('rate limit') ||
+    q.includes('rate-limit') ||
+    q.includes('ratelimit') ||
+    q.includes('throttle') ||
+    q.includes('throttling') ||
+    q.includes('quota')
+  ) {
+    return {
+      answer: `**API Rate Limiting & Protection Policies**:\n\nTo safeguard production resources on Render and prevent abuse, all APIs enforce scoped rate limits via Django REST Framework:\n\n• **Contact Endpoint (\`/api/contact/\`):** \`5/minute\` (prevents spam flooding and protects email quota).\n• **Weather Endpoint (\`/api/weather/\`):** \`30/minute\` (prevents rate violations against Open-Meteo).\n• **RAG Intelligence (\`/api/rag/stream/\`):** \`30/minute\` (protects CPU & memory during dense vector retrieval).\n• **AI Copilot (\`/api/copilot/stream/\`):** \`30/minute\` (protects LLM streaming tokens).\n• **General Endpoints:** \`60/minute\` (standard IP-scoped throttling).\n\nSensitive endpoints also include bot honeypots and CORS origin whitelisting (\`mrask-frontend.vercel.app\`).`,
+      suggestions: [
+        'What APIs are used in this project?',
+        'How does the RAG pipeline work?',
+        'How do I contact Siva?',
+      ],
+    };
+  }
+
+  // 3. Interactive & Customer Inquiries
+  if (
+    q.includes('interactive') ||
+    q.includes('customer') ||
+    q.includes('visitor') ||
+    q.includes('recruiter') ||
+    q.includes('how do you work') ||
+    q.includes('what can you do') ||
+    q.includes('capabilities') ||
+    q.includes('cop-pilot')
+  ) {
+    return {
+      answer: `**Yes! I am Mr.A.S.K's interactive AI Copilot**, designed to interactively assist recruiters, clients, and technical visitors in real time.\n\nHere is what I can do interactively:\n• **Real-Time Streaming:** I stream grounded answers token-by-token using Server-Sent Events (SSE).\n• **Voice Copilot Mode:** Click **🔊 Voice ON** to have me speak my answers aloud with speech synthesis, accompanied by an animated audio visualizer.\n• **Interactive Follow-ups:** I suggest contextual question pills after every response so you can explore Siva's experience intuitively.\n• **Deep System Knowledge:** I can answer questions about Siva's 2+ years at Tata Communications, SevOne NMS & Assure1 network automations, MySQL → PostgreSQL migrations, RAG FAISS vector architecture, and live API rate limits.\n\nFeel free to ask me any question directly!`,
+      suggestions: [
+        'What are the APIs used in this project?',
+        'Tell me about his Tata Communications experience',
+        'How do I contact him?',
+      ],
+    };
+  }
+
+  // 4. Greetings
+  if (
+    ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good evening', 'good afternoon', 'namaste', 'start'].includes(q) ||
+    q.startsWith('hi ') ||
+    q.startsWith('hello ')
+  ) {
+    return {
+      answer: `Hello and welcome! 👋 I am **Mr.A.S.K's AI Portfolio Co-Pilot**.\n\nI am here to interactively guide you through **${profile.name}'s** 2+ years of software engineering experience at **MasterCom / Tata Communications**, his full-stack products, and his AI systems.\n\nWhat would you like to know?\n• His **full-stack tech stack & Python/Django APIs**\n• His **SevOne NOC/SOC network automation & MySQL → PostgreSQL migration**\n• How his **RAG Document Intelligence Studio** works\n• How to **schedule an interview or contact him**`,
+      suggestions: [
+        'What is his tech stack?',
+        'What APIs are used in this project?',
+        'Tell me about his Tata Communications work',
+      ],
+    };
+  }
+
+  // 5. Telecom NOC/SOC & Enterprise Automation
+  if (
+    q.includes('sevone') ||
+    q.includes('assure1') ||
+    q.includes('disha') ||
+    q.includes('snmp') ||
+    q.includes('netflow') ||
+    q.includes('noc') ||
+    q.includes('soc') ||
+    q.includes('bgp') ||
+    q.includes('ospf') ||
+    q.includes('alarm') ||
+    q.includes('servicenow') ||
+    q.includes('incident')
+  ) {
+    return {
+      answer: `At **MasterCom Technology Services** (Client: **Tata Communications Ltd**), **${profile.name}** engineered mission-critical telecom automation across global PoPs:\n\n• **SevOne NMS & DISHA (Assure1) Automation:** Automated device discovery, threshold-based health heuristics, and log collection via Python, Perl & Shell scripts, **reducing manual operational effort by 35%**.\n• **NOC/SOC Telemetry Correlation:** Correlated **5,000+ SNMP OIDs and NetFlow telemetry streams**, cutting incident detection times from 45 to 20 minutes under strict ServiceNow SLAs.\n• **SOC Threat & Routing Mitigation:** Automated Python SSH runbooks for BGP Peer Flap, Interface Jitter, OSPF Area Flaps, and Volumetric DDoS Flowspec mitigation in under 4 seconds.\n• **ServiceNow Integration:** Auto-dispatched structured P1/P2 incident tickets with full RCA diagnostic logs.\n\nYou can test his interactive Enterprise Simulator under \`/project/sevone-automation\`!`,
+      suggestions: [
+        'Tell me about the database migration',
+        'What APIs are used in this project?',
+        'How do I hire Siva?',
+      ],
+    };
+  }
+
+  // 6. Database Migration (MySQL -> PostgreSQL)
+  if (
+    q.includes('mysql') ||
+    q.includes('postgresql') ||
+    q.includes('postgres') ||
+    q.includes('migration') ||
+    q.includes('dbeaver') ||
+    q.includes('database') ||
+    q.includes('sql')
+  ) {
+    return {
+      answer: `**MySQL → PostgreSQL Telecom Database Migration**:\n\nSiva led the production migration of large-scale relational schemas from legacy MySQL to PostgreSQL for Tata Communications:\n\n• **Join Optimization:** Rewrote heavy multi-table joins using optimized PostgreSQL indexing and Python/Perl hash maps, **cutting average query execution times by 2.5 seconds**.\n• **API Caching:** Designed high-performance Python RESTful APIs with Redis/memory caching, **reducing database strain by 30%**.\n• **Zero Data Loss:** Validated schemas and row consistency across millions of telecom records using DBeaver and automated verification scripts.\n\nExplore the deep dive under \`/project/telecom-db-migration\`!`,
+      suggestions: [
+        'What is his full tech stack?',
+        'What APIs are used in this project?',
+        'How do I contact him?',
+      ],
+    };
+  }
+
+  // 7. Contact / Hire
   if (
     q.includes('contact') ||
     q.includes('hire') ||
@@ -44,13 +177,12 @@ function generateLocalCopilotAnswer(question: string): { answer: string; suggest
     };
   }
 
-  // Work Experience / Company
+  // 8. Work Experience / Company
   if (
     q.includes('experience') ||
     q.includes('company') ||
     q.includes('mastercom') ||
     q.includes('tata') ||
-    q.includes('sevone') ||
     q.includes('role')
   ) {
     return {
@@ -63,7 +195,7 @@ function generateLocalCopilotAnswer(question: string): { answer: string; suggest
     };
   }
 
-  // Skills / Stack
+  // 9. Skills / Stack
   if (
     q.includes('skill') ||
     q.includes('stack') ||
@@ -82,7 +214,7 @@ function generateLocalCopilotAnswer(question: string): { answer: string; suggest
     };
   }
 
-  // RAG Chatbot
+  // 10. RAG Chatbot
   if (q.includes('rag') || q.includes('chatbot') || q.includes('ollama') || q.includes('faiss') || q.includes('pdf')) {
     return {
       answer: `**RAG Document Intelligence Studio** is Siva's on-premise Retrieval-Augmented Generation project:\n\n1. **Ingestion & Extraction:** Extracts text from custom PDF and text documents using \`pypdf\`.\n2. **Semantic Chunking:** Splits text into context-preserved chunks with overlap.\n3. **Dense Embeddings:** Creates 384-dimensional dense vectors with \`all-MiniLM-L6-v2\`.\n4. **Vector Retrieval:** Indexes dense vectors in FAISS for sub-millisecond cosine similarity search.\n5. **Local Reasoning:** Uses local Ollama (Qwen2.5/Llama3) with real-time SSE token streaming, guaranteeing 100% data privacy with zero cloud leak.\n\nYou can test it live under \`/project/rag-chatbot\`!`,
@@ -94,8 +226,8 @@ function generateLocalCopilotAnswer(question: string): { answer: string; suggest
     };
   }
 
-  // Weather App
-  if (q.includes('weather') || q.includes('api') || q.includes('meteo')) {
+  // 11. Weather App
+  if (q.includes('weather') || q.includes('meteo')) {
     return {
       answer: `**Weather App** is a decoupled full-stack microservice demonstration:\n\n• **Backend API:** Django REST Framework proxying Open-Meteo geocoding and 5-day meteorological forecasts.\n• **Frontend Client:** React Native Web interface with animated temperature metrics and responsive forecast widgets.\n• **Resilience:** Intelligent city normalization, scoped rate throttling (30 req/min), and clean JSON serialization.\n\nYou can test it live under \`/project/weather-app\`!`,
       suggestions: [
@@ -109,6 +241,7 @@ function generateLocalCopilotAnswer(question: string): { answer: string; suggest
   return {
     answer: `**${profile.name} (${profile.displayName})** is an Associate Software Engineer with **2+ years of experience** at **MasterCom Technology Services** (Client: **Tata Communications Ltd**).\n\nHe specializes in full-stack web applications, Python automation, and self-hosted RAG AI systems. Feel free to explore his projects or contact him directly at ${profile.email}!`,
     suggestions: [
+      "What are the APIs used in this project?",
       "What is his tech stack?",
       'Tell me about his Tata Communications experience',
       'How do I contact him?',

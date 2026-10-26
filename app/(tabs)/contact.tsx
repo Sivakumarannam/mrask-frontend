@@ -22,6 +22,9 @@ type ModalState = {
   message: string;
   senderName?: string;
   senderEmail?: string;
+  deliveryStatus?: string;
+  isSmtpConfigured?: boolean;
+  sentMessageText?: string;
 };
 
 export default function Contact() {
@@ -89,29 +92,23 @@ export default function Contact() {
         website: honeypot,
       });
 
-      if (result.email_sent === false) {
-        setModalState({
-          visible: true,
-          type: 'error',
-          title: 'Mail Delivery Pending',
-          message:
-            result.detail ??
-            'Your message was saved in our database, but automatic email delivery is not configured on the server.',
-          senderName: trimmedName,
-          senderEmail: trimmedEmail,
-        });
-        return;
-      }
+      const isSmtp = result.email_sent === true;
 
-      // Success popup!
+      // Success popup with accurate SMTP vs DB delivery state
       setModalState({
         visible: true,
         type: 'success',
-        title: 'Mail Sent Successfully!',
-        message:
-          `Thank you, ${trimmedName}! Your message has been sent directly to my personal inbox. I’ll review your note and get back to you at ${trimmedEmail} shortly.`,
+        title: isSmtp ? 'Mail Dispatched Successfully!' : 'Message Saved to Database!',
+        message: isSmtp
+          ? `Thank you, ${trimmedName}! Your message was dispatched directly to my personal inbox via Gmail SMTP. I’ll review your note and get back to you at ${trimmedEmail} shortly.`
+          : `Thank you, ${trimmedName}! Your message has been saved securely to Siva's production database. To guarantee instant delivery directly to his personal inbox, you can also click the 1-click Gmail button below.`,
         senderName: trimmedName,
         senderEmail: trimmedEmail,
+        deliveryStatus: isSmtp
+          ? '✓ Dispatched via Gmail SMTP'
+          : '✓ Saved in PostgreSQL (SMTP Relay Pending)',
+        isSmtpConfigured: isSmtp,
+        sentMessageText: trimmedMessage,
       });
 
       // Clear the form fields upon success
@@ -131,6 +128,7 @@ export default function Contact() {
         message: errorMsg,
         senderName: trimmedName,
         senderEmail: trimmedEmail,
+        sentMessageText: trimmedMessage,
       });
     } finally {
       setSubmitting(false);
@@ -477,20 +475,48 @@ export default function Contact() {
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ color: t.muted, fontSize: 13 }}>Delivery Status:</Text>
-                  <Text style={{ color: '#34D399', fontSize: 13, fontWeight: '700' }}>
-                    ✓ Confirmed via Gmail SMTP
+                  <Text
+                    style={{
+                      color: modalState.isSmtpConfigured ? '#34D399' : '#38BDF8',
+                      fontSize: 13,
+                      fontWeight: '700',
+                    }}>
+                    {modalState.deliveryStatus || '✓ Saved in Database'}
                   </Text>
                 </View>
               </View>
             ) : null}
 
             {/* Action Buttons */}
-            <View style={{ flexDirection: 'row', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <View style={{ flexDirection: 'column', gap: 10, width: '100%' }}>
+              <Pressable
+                onPress={() => {
+                  setModalState((prev) => ({ ...prev, visible: false }));
+                  openGmail(
+                    `Portfolio Message from ${modalState.senderName || 'Visitor'}`,
+                    modalState.sentMessageText || message || ''
+                  );
+                }}
+                style={({ pressed }) => ({
+                  width: '100%',
+                  borderRadius: 12,
+                  backgroundColor: '#1E3A8A',
+                  borderColor: '#3B82F6',
+                  borderWidth: 1.5,
+                  paddingVertical: 13,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.85 : 1,
+                })}>
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
+                  ✉️ Send Direct to Siva via Gmail (Guaranteed 1-Click)
+                </Text>
+              </Pressable>
+
               <Pressable
                 onPress={() => setModalState((prev) => ({ ...prev, visible: false }))}
                 style={({ pressed }) => ({
-                  flex: 1,
-                  minWidth: 140,
+                  width: '100%',
                   borderRadius: 12,
                   overflow: 'hidden',
                   opacity: pressed ? 0.85 : 1,
@@ -510,34 +536,10 @@ export default function Contact() {
                     borderRadius: 12,
                   }}>
                   <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
-                    {modalState.type === 'success' ? 'Awesome, Got It!' : 'Dismiss & Edit'}
+                    Awesome, Got It!
                   </Text>
                 </LinearGradient>
               </Pressable>
-
-              {modalState.type === 'error' ? (
-                <Pressable
-                  onPress={() => {
-                    setModalState((prev) => ({ ...prev, visible: false }));
-                    openGmail('Hello Siva - Reaching Out', message || '');
-                  }}
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    minWidth: 140,
-                    borderRadius: 12,
-                    backgroundColor: '#1E3A8A',
-                    borderColor: '#3B82F6',
-                    borderWidth: 1,
-                    paddingVertical: 13,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: pressed ? 0.85 : 1,
-                  })}>
-                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
-                    Send via Gmail
-                  </Text>
-                </Pressable>
-              ) : null}
             </View>
           </View>
         </View>

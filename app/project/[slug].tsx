@@ -119,7 +119,7 @@ export default function ProjectDetail() {
               </Heading>
               <Card accent>
                 <View style={{ gap: 20 }}>
-                  {/* Row 1: Left Side Image 1, Right Side Description 1 */}
+                  {/* Row 1: Left Side Image View 1, Right Side Description View 1 */}
                   <View style={[styles.detailSplitRow, isMobile && styles.detailSplitRowStacked]}>
                     <View style={[styles.detailLeftImageWrapper, { borderColor: t.border }]}>
                       <Image
@@ -128,13 +128,13 @@ export default function ProjectDetail() {
                         resizeMode="cover"
                       />
                       <View style={styles.detailBadgeOverlay}>
-                        <Text style={styles.detailBadgeText}>VIEW 01 / ARCHITECTURE</Text>
+                        <Text style={styles.detailBadgeText}>🖼️ VIEW 1 IMAGE (ARCHITECTURE VIEW)</Text>
                       </View>
                     </View>
 
                     <View style={[styles.detailRightDescCol, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
                       <Text style={[styles.detailViewTag, { color: t.accent }]}>
-                        🔍 VIEW 01: SYSTEM TOPOLOGY & INGESTION
+                        🔍 VIEW 1 DESCRIPTION: ARCHITECTURE & INGESTION
                       </Text>
                       <Text style={[styles.detailCaptionTitle, { color: t.text }]}>
                         {img1.caption}
@@ -145,7 +145,7 @@ export default function ProjectDetail() {
                     </View>
                   </View>
 
-                  {/* Row 2: Down Left Side View 2 Image, Right Side Description 2 */}
+                  {/* Row 2: Down Left Side Image View 2, Right Side Description View 2 */}
                   <View style={[styles.detailSplitRow, isMobile && styles.detailSplitRowStacked]}>
                     <View style={[styles.detailLeftImageWrapper, { borderColor: t.border }]}>
                       <Image
@@ -154,13 +154,13 @@ export default function ProjectDetail() {
                         resizeMode="cover"
                       />
                       <View style={styles.detailBadgeOverlay}>
-                        <Text style={styles.detailBadgeText}>VIEW 02 / AUTOMATION RUNTIME</Text>
+                        <Text style={styles.detailBadgeText}>🖼️ VIEW 2 IMAGE (RUNTIME OPERATIONS VIEW)</Text>
                       </View>
                     </View>
 
                     <View style={[styles.detailRightDescCol, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
                       <Text style={[styles.detailViewTag, { color: '#10B981' }]}>
-                        ⚙️ VIEW 02: AUTONOMOUS RUNTIME & MITIGATION
+                        ⚙️ VIEW 2 DESCRIPTION: AUTONOMOUS RUNTIME & MITIGATION
                       </Text>
                       <Text style={[styles.detailCaptionTitle, { color: t.text }]}>
                         {img2.caption}
