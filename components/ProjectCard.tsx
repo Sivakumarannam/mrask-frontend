@@ -107,7 +107,9 @@ export function ProjectCard({ p }: { p: Project }) {
       {/* Action Buttons */}
       <View style={styles.actionRow}>
         <Button label="Explore Deep Dive →" onPress={() => router.push(('/project/' + p.id) as any)} />
-        <Button label="GitHub Repo" variant="secondary" onPress={() => openLink(p.github)} />
+        {p.github && p.github.trim() !== '' ? (
+          <Button label="GitHub Repo" variant="secondary" onPress={() => openLink(p.github)} />
+        ) : null}
         {p.demoUrl ? (
           <Button label="Live Demo" variant="secondary" onPress={() => openLink(p.demoUrl as string)} />
         ) : null}

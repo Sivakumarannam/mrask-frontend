@@ -85,7 +85,9 @@ export default function ProjectDetail() {
               <Text style={{ color: t.muted, fontSize: 15, lineHeight: 25, marginTop: 12 }}>{p.summary}</Text>
 
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 18 }}>
-                <Button label="GitHub Repository" onPress={() => openLink(githubUrl)} />
+                {githubUrl && githubUrl.trim() !== '' ? (
+                  <Button label="GitHub Repository" onPress={() => openLink(githubUrl)} />
+                ) : null}
                 {demoUrl ? (
                   <Button label="Open Live Demo" variant="secondary" onPress={() => openLink(demoUrl)} />
                 ) : null}

@@ -116,9 +116,32 @@ function generateLocalCopilotAnswer(question: string): { answer: string; suggest
   };
 }
 
-export function AICopilot() {
+type AICopilotProps = {
+  isOpen?: boolean;
+  onOpen?: () => void;
+  onClose?: () => void;
+  hideDefaultTrigger?: boolean;
+};
+
+export function AICopilot({
+  isOpen: externalIsOpen,
+  onOpen,
+  onClose,
+  hideDefaultTrigger = false,
+}: AICopilotProps = {}) {
   const t = useTheme();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = (val: boolean) => {
+    if (val) {
+      if (onOpen) onOpen();
+      setInternalIsOpen(true);
+    } else {
+      if (onClose) onClose();
+      setInternalIsOpen(false);
+    }
+  };
+
   const [inputMessage, setInputMessage] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
@@ -300,7 +323,7 @@ export function AICopilot() {
   return (
     <View style={{ position: 'relative' }}>
       {/* Floating Trigger Button */}
-      {!isOpen && (
+      {!isOpen && !hideDefaultTrigger && (
         <Pressable
           onPress={() => setIsOpen(true)}
           accessibilityLabel="Open AI Co-Pilot chat"

@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -17,7 +18,7 @@ type Scenario = {
 const SCENARIOS: Scenario[] = [
   {
     id: 'packet-loss',
-    title: 'High Packet Loss on Core Router',
+    title: 'NOC: High Packet Loss on Core Router',
     device: 'cr01.lon.tatacommunications.net (10.24.1.1)',
     metric: 'Packet Drop Rate',
     targetThreshold: '18.4% (Threshold: 5.0%)',
@@ -33,12 +34,31 @@ const SCENARIOS: Scenario[] = [
       { text: '[00:02.40] [SEVONE_VERIFY] Telemetry re-check: Packet loss dropped to 0.00% (Latency: 14ms)', delay: 2800, color: '#34D399' },
       { text: '[00:02.80] [SERVICENOW_API] POST /api/now/table/incident ➔ Ticket INC0948218 created', delay: 3300, color: '#F59E0B' },
       { text: '[00:03.10] [SERVICENOW_API] Auto-updated status to RESOLVED with full diagnostic RCA logs', delay: 3700, color: '#10B981' },
-      { text: '[00:03.30] [SUMMARY] Incident remediated in 3.1s. Operational manual effort reduced by ~35%.', delay: 4100, color: '#7DB9FF' },
+      { text: '[00:03.30] [SUMMARY] NOC incident remediated in 3.1s. Operational manual effort reduced by ~35%.', delay: 4100, color: '#7DB9FF' },
+    ],
+  },
+  {
+    id: 'soc-ddos',
+    title: 'SOC: Volumetric DDoS & BGP Flowspec Filter',
+    device: 'as6453-transit-gw.tatacommunications.net (10.128.4.50)',
+    metric: 'Ingress Volume Spike',
+    targetThreshold: '14.8 Gbps / 1.2M pps (> 5 Gbps)',
+    severity: 'P1-Critical',
+    ticketId: 'SEC-INC0949102',
+    logs: [
+      { text: '[00:00.12] [SOC SIEM / Assure1] Volumetric anomaly alert: Ingress SYN packet rate spike > 1.2M pps', delay: 100 },
+      { text: '[00:00.38] [SEVONE_FLOW] NetFlow telemetry identified distributed reflection attack on VIP 10.128.4.50', delay: 450, color: '#EF4444' },
+      { text: '[00:00.75] [PYTHON_SOC_GUARD] /opt/soc/mitigate_ddos_flowspec.py triggered (threshold > 5.0 Gbps)', delay: 900, color: '#38BDF8' },
+      { text: '[00:01.20] [AUTOMATION] Injected dynamic BGP Flowspec filter rule to edge routers via ExaBGP/SSH', delay: 1400 },
+      { text: '[00:01.80] [AUTOMATION] Blackholed attack CIDRs; scrubbed transit stream through Tata Clean Pipe', delay: 1900, color: '#10B981' },
+      { text: '[00:02.35] [SEVONE_VERIFY] Legitimate traffic normalized (drop rate: 0.00%, latency: 12ms)', delay: 2400, color: '#34D399' },
+      { text: '[00:02.80] [SERVICENOW_API] Generated security incident SEC-INC0949102 with full RCA packet logs', delay: 2900, color: '#F59E0B' },
+      { text: '[00:03.10] [STATUS] SOC attack neutralized in 3.1s. Autonomous runbook saved ~40 mins manual RCA.', delay: 3300, color: '#10B981' },
     ],
   },
   {
     id: 'slow-query',
-    title: 'MySQL Slow Query & Lock Contention',
+    title: 'DB: MySQL Slow Query & Lock Contention',
     device: 'db-bss-prod-02.tatacommunications.net (10.40.8.20)',
     metric: 'SQL Query Latency',
     targetThreshold: '3.82s (Threshold: 1.0s)',
@@ -57,7 +77,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     id: 'bgp-flap',
-    title: 'BGP Peer Flap & Interface Jitter',
+    title: 'BGP: Carrier Peer Flap & Interface Jitter',
     device: 'as6453-gw02.singapore.tatacommunications.net',
     metric: 'BGP Hold Timer Jitter',
     targetThreshold: '3 Flaps in 60s',
@@ -69,7 +89,7 @@ const SCENARIOS: Scenario[] = [
       { text: '[00:01.00] [PYTHON_RUNBOOK] /opt/telecom/dampen_bgp_route.py triggered', delay: 1000, color: '#38BDF8' },
       { text: '[00:01.60] [AUTOMATION] Dampened unstable route prefix; isolated peering neighbor 192.168.99.4', delay: 1600, color: '#10B981' },
       { text: '[00:02.10] [TELEMETRY] Convergence stabilized across Singapore PoP in 2.1s', delay: 2100, color: '#34D399' },
-      { text: '[00:02.60] [SERVICENOW_API] Dispatched high-priority notification to L2/L3 Carrier NOC', delay: 2600, color: '#F59E0B' },
+      { text: '[00:02.60] [SERVICENOW_API] Dispatched high-priority notification to L2/L3 Carrier NOC & SOC', delay: 2600, color: '#F59E0B' },
       { text: '[00:03.00] [STATUS] System auto-remediated; zero customer packet drops recorded', delay: 3000, color: '#10B981' },
     ],
   },
@@ -118,13 +138,13 @@ export function EnterpriseIncidentSimulator() {
         <View style={styles.headerLeft}>
           <View style={styles.liveIndicator}>
             <View style={[styles.dot, { backgroundColor: '#10B981' }]} />
-            <Text style={[styles.liveText, { color: '#10B981' }]}>ENTERPRISE SIMULATOR</Text>
+            <Text style={[styles.liveText, { color: '#10B981' }]}>ENTERPRISE NOC / SOC SIMULATOR</Text>
           </View>
           <Text style={[styles.mainHeading, { color: t.text }]}>
-            MasterCom & Tata Communications Network Automation Playground
+            MasterCom & Tata Communications NOC / SOC Automation Playground
           </Text>
           <Text style={[styles.subHeading, { color: t.muted }]}>
-            Experience how Siva&apos;s Python automations monitor 5,000+ SevOne SNMP metrics, execute diagnostic runbooks, and auto-resolve ServiceNow SLA tickets.
+            Experience how Siva&apos;s Python automations monitor 5,000+ SevOne SNMP metrics, detect SOC volumetric attack anomalies, execute diagnostic runbooks, and auto-resolve ServiceNow SLA tickets.
           </Text>
         </View>
       </View>
@@ -164,7 +184,7 @@ export function EnterpriseIncidentSimulator() {
       {/* Incident Metric Dashboard Box */}
       <View style={[styles.statusBox, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
         <View style={styles.statusCol}>
-          <Text style={[styles.statusLabel, { color: t.muted }]}>TARGET DEVICE</Text>
+          <Text style={[styles.statusLabel, { color: t.muted }]}>TARGET SYSTEM</Text>
           <Text style={[styles.statusValue, { color: t.text }]}>{scenario.device}</Text>
         </View>
         <View style={styles.statusCol}>
@@ -212,28 +232,41 @@ export function EnterpriseIncidentSimulator() {
                 : incidentState === 'triggered'
                 ? 'BREACH DETECTED'
                 : incidentState === 'remediating'
-                ? 'PYTHON SELF-HEALING'
+                ? 'PYTHON RUNBOOK ACTIVE'
                 : 'RESOLVED & VERIFIED'}
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Action Button */}
+      {/* Pro Sleek Action Button with LinearGradient */}
       <View style={styles.buttonRow}>
         <Pressable
           onPress={handleTrigger}
           disabled={isRunning}
           style={({ pressed }) => [
-            styles.triggerBtn,
-            {
-              backgroundColor: isRunning ? t.border : '#EF4444',
-              opacity: pressed || isRunning ? 0.75 : 1,
-            },
+            styles.triggerBtnWrapper,
+            { opacity: pressed || isRunning ? 0.8 : 1 },
           ]}>
-          <Text style={styles.triggerBtnText}>
-            {isRunning ? 'Executing Self-Healing Runbook...' : '⚡ Trigger Incident Simulation'}
-          </Text>
+          <LinearGradient
+            colors={
+              isRunning
+                ? ['#334155', '#1E293B']
+                : incidentState === 'resolved'
+                ? ['#059669', '#10B981']
+                : ['#E11D48', '#BE123C']
+            }
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.triggerBtnGradient}>
+            <Text style={styles.triggerBtnText}>
+              {isRunning
+                ? '⚡ Executing Autonomous Self-Healing Runbook...'
+                : incidentState === 'resolved'
+                ? '✓ Incident Auto-Remediated (Click to Run Again)'
+                : '⚡ Trigger Incident Simulation'}
+            </Text>
+          </LinearGradient>
         </Pressable>
       </View>
 
@@ -245,7 +278,7 @@ export function EnterpriseIncidentSimulator() {
             <View style={[styles.macDot, { backgroundColor: '#F59E0B' }]} />
             <View style={[styles.macDot, { backgroundColor: '#10B981' }]} />
           </View>
-          <Text style={styles.terminalTitle}>SevOne NMS & Python Auto-Remediation Console (Tata Telecom NOC)</Text>
+          <Text style={styles.terminalTitle}>SevOne NMS & Python Auto-Remediation Console (Tata Telecom NOC / SOC Operations)</Text>
         </View>
 
         <ScrollView
@@ -255,7 +288,7 @@ export function EnterpriseIncidentSimulator() {
           {activeLogs.length === 0 ? (
             <Text style={styles.idleTerminalText}>
               Console listening... Click &quot;Trigger Incident Simulation&quot; above to watch Siva&apos;s automated
-              event detection, SSH runbook execution, and ServiceNow ticket resolution live.
+              NOC / SOC event detection, SSH runbook execution, and ServiceNow ticket resolution live.
             </Text>
           ) : (
             activeLogs.map((log, i) => (
@@ -367,10 +400,17 @@ const styles = StyleSheet.create({
   buttonRow: {
     marginBottom: 14,
   },
-  triggerBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 18,
+  triggerBtnWrapper: {
     borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#E11D48',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+  },
+  triggerBtnGradient: {
+    paddingVertical: 13,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -32,57 +32,58 @@ export type Project = {
 export const projects: Project[] = [
   {
     id: 'sevone-automation',
-    title: 'SevOne NMS & Service Assurance Automation',
-    tagline: 'Enterprise network monitoring & operational automation for telecom',
+    title: 'SevOne NMS, NOC/SOC & Service Assurance Automation',
+    tagline: 'Enterprise NOC/SOC telemetry, security anomaly mitigation & operational automation',
     role: 'Associate Software Engineer (MasterCom / Client: Tata Communications Ltd)',
     summary:
-      'End-to-end automation of monitoring, reporting, and operational tasks on SevOne NMS, PMS, and DISHA (Assure1) for Tata Communications Ltd. Built Python and Perl automations that reduced manual operational effort by 35%, engineered Python REST APIs with caching, and led database migration from MySQL to PostgreSQL optimizing query execution by 2.5 seconds.',
+      'End-to-end automation of monitoring, reporting, and operational security tasks across telecom NOC & SOC environments on SevOne NMS, PMS, and DISHA (Assure1) for Tata Communications Ltd. Engineered Python and Perl automations that reduced manual operational effort by 35%, deployed DDoS mitigation runbooks, correlated 5,000+ SNMP & NetFlow streams, and maintained strict ServiceNow SLAs.',
     highlights: [
-      'Automated device discovery, backups, log cleanup, and metrics collection via Python, Perl & Shell scripts (cut effort by ~35%)',
-      'Correlated 5,000+ SNMP metrics and NetFlow flows on SevOne dashboards, reducing incident detection time from 45 to 20 minutes',
-      'Successfully migrated production database workloads from MySQL to PostgreSQL with join rewrites via Python/Perl and DBeaver',
+      'Automated NOC/SOC device discovery, backups, log cleanup, and security telemetry collection via Python, Perl & Shell scripts (cut manual operational effort by ~35%)',
+      'Correlated 5,000+ SNMP metrics and NetFlow flows on SevOne & Assure1 dashboards, reducing incident detection time from 45 to 20 minutes',
+      'Engineered automated Python SSH runbooks mitigating volumetric traffic spikes and routing anomalies in under 4 seconds',
+      'Led database migration from MySQL to PostgreSQL with join rewrites via Python/Perl and DBeaver, optimizing query execution by 2.5 seconds',
       'Engineered Python RESTful APIs with caching and performance optimization, reducing database strain by 30%',
-      'Provided L2/L3 support on Assure1 & Spotlight for real-time monitoring, incident troubleshooting, and RCA under strict SLAs in ServiceNow',
+      'Delivered L2/L3 support on Assure1 & Spotlight for real-time monitoring, security anomaly troubleshooting, and RCA under strict SLAs in ServiceNow',
     ],
-    stack: ['Python', 'Perl', 'Bash', 'Django REST Framework', 'MySQL', 'PostgreSQL', 'SevOne NMS', 'DISHA (Assure1)', 'SNMP', 'NetFlow', 'Linux', 'ServiceNow'],
+    stack: ['Python', 'Perl', 'Bash', 'Django REST Framework', 'MySQL', 'PostgreSQL', 'SevOne NMS', 'DISHA (Assure1)', 'NOC/SOC', 'SNMP', 'NetFlow', 'Linux', 'ServiceNow'],
     steps: [
-      'Ingest SNMP & NetFlow telemetry',
-      'Correlate 5,000+ metrics in SevOne NMS',
-      'Trigger threshold alerts & incident logs',
-      'Automated Python/Perl scripts execute discovery/cleanup',
-      'Python REST API serves analytics dashboards',
-      'Sync tickets & SLA tracking via ServiceNow',
+      'Ingest SNMP & NetFlow telemetry across global PoPs',
+      'Correlate 5,000+ metrics & volumetric security anomalies in SevOne/Assure1',
+      'Trigger threshold breach alerts & SOC incident events',
+      'Automated Python/Perl scripts execute discovery, diagnostic checks & cleanup',
+      'Python REST API serves live NOC/SOC analytics dashboards',
+      'Sync tickets & SLA tracking via ServiceNow with RCA logs',
     ],
-    github: 'https://github.com/Sivakumarannam',
+    github: '',
     demoKind: '',
     images: [
       {
         url: '/images/projects/sevone_1.jpg',
-        caption: 'SevOne NMS Production Telemetry & NOC Dashboard',
+        caption: 'Enterprise Telecom NOC / SOC Operations Control Room',
         technicalDetails:
-          'Live ingestion and correlation of 5,000+ SNMP OIDs and NetFlow telemetry streams across core routers and carrier circuits, alerting on packet loss and latency spikes.',
+          'Live ingestion and correlation of 5,000+ SNMP OIDs and NetFlow telemetry streams in IBM SevOne NMS and DISHA Assure1, alerting on packet loss, interface congestion, and volumetric attack spikes.',
       },
       {
         url: '/images/projects/sevone_2.jpg',
-        caption: 'Automated Incident Remediation & ServiceNow SLA Flow',
+        caption: 'SOC Incident Response & Autonomous Python Remediation',
         technicalDetails:
-          'Event-driven Python daemon listens to threshold breaches, executes automated diagnostic checks, triggers disk/cache cleanup, and auto-generates SLA-tracked ServiceNow incident tickets.',
+          'Event-driven Python Netmiko runbook detecting routing/security breaches, executing automated SSH diagnostics, applying dynamic BGP Flowspec filtering, and auto-resolving ServiceNow tickets under strict 99.9% SLAs.',
       },
     ],
     architecture: {
       description:
-        'A high-reliability telecom telemetry pipeline. Core network devices broadcast SNMP traps and IPFIX/NetFlow telemetry into SevOne and Assure1. Python automation daemons poll SevOne REST APIs, run threshold-based health heuristics, perform automated remediation commands via SSH, and push structured RCA logs into ServiceNow for L2/L3 NOC teams.',
+        'A high-reliability telecom NOC/SOC telemetry and threat mitigation pipeline. Core network devices broadcast SNMP traps, IPFIX/NetFlow telemetry, and volumetric flow stats into SevOne and Assure1. Python automation daemons poll SevOne REST APIs, run threshold-based health heuristics, perform automated remediation commands via SSH, and push structured RCA logs into ServiceNow for L2/L3 NOC & SOC teams.',
       flow: [
-        'Routers/Switches ➔ SNMP & NetFlow Polling (5,000+ streams)',
-        'SevOne NMS & Assure1 ➔ Correlation & Threshold Breach Alerting',
-        'Python Event Listener ➔ Validates Incident Severity & State',
-        'Automation Engine ➔ Runs Diagnostic Runbook / Log Rotation via SSH',
-        'ServiceNow API ➔ Dispatches P1/P2 Ticket with RCA Telemetry',
+        'Routers/Switches ➔ SNMP & NetFlow Polling (5,000+ streams across global PoPs)',
+        'SevOne NMS & Assure1 ➔ Correlation & Volumetric Anomaly Threshold Alerting',
+        'Python Event Listener ➔ Validates Incident Severity & Operational/Security State',
+        'Automation Engine ➔ Runs Diagnostic Runbook / Log Rotation / BGP Dampening via SSH',
+        'ServiceNow API ➔ Dispatches P1/P2 Ticket with RCA Telemetry (Auto-Resolved)',
       ],
       metrics: [
         { label: 'Operational Effort Cut', value: '35%' },
         { label: 'Incident Detection Time', value: '45m ➔ 20m' },
-        { label: 'Correlated Metrics', value: '5,000+' },
+        { label: 'Correlated Telemetry', value: '5,000+' },
         { label: 'SLA Adherence', value: '99.8%' },
       ],
     },
@@ -109,7 +110,7 @@ export const projects: Project[] = [
       'API caching layer implementation',
       'Cutover validation & SLA signoff',
     ],
-    github: 'https://github.com/Sivakumarannam',
+    github: '',
     demoKind: '',
     images: [
       {
@@ -279,7 +280,7 @@ export const projects: Project[] = [
       'Pushed to container registry',
       'Kubernetes applies declarative manifest updates',
     ],
-    github: 'https://github.com/Sivakumarannam',
+    github: '',
     demoKind: '',
     images: [
       {

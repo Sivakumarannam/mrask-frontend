@@ -5,6 +5,7 @@ import { Dimensions, Image, Platform, Pressable, ScrollView, Text, View } from '
 
 import { AICopilot } from '@/components/AICopilot';
 import { DeveloperTerminal } from '@/components/DeveloperTerminal';
+import { FloatingActionDock } from '@/components/FloatingActionDock';
 import { RecruiterCVStudio } from '@/components/RecruiterCVStudio';
 import { useThemeContext } from '@/constants/theme';
 import { profile } from '@/data/profile';
@@ -28,6 +29,7 @@ export default function TabLayout() {
 
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [isCVStudioOpen, setIsCVStudioOpen] = useState(false);
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
 
   useEffect(() => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -226,7 +228,16 @@ export default function TabLayout() {
             <Tabs.Screen name="contact" options={{ title: 'Contact' }} />
           </Tabs>
         </View>
-        <AICopilot />
+        <FloatingActionDock
+          onOpenTerminal={() => setIsTerminalOpen(true)}
+          onToggleCopilot={() => setIsCopilotOpen((prev) => !prev)}
+          isCopilotOpen={isCopilotOpen}
+        />
+        <AICopilot
+          isOpen={isCopilotOpen}
+          onClose={() => setIsCopilotOpen(false)}
+          hideDefaultTrigger={true}
+        />
         <DeveloperTerminal
           isOpen={isTerminalOpen}
           onClose={() => setIsTerminalOpen(false)}
@@ -432,43 +443,18 @@ export default function TabLayout() {
         </Tabs>
       </View>
 
-      {/* Floating CLI Terminal Toggle Button (Desktop/Web) */}
-      {!isMobile && (
-        <Pressable
-          onPress={() => setIsTerminalOpen(true)}
-          style={({ pressed }) => ({
-            position: 'absolute',
-            bottom: 84,
-            right: 24,
-            zIndex: 99998,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingHorizontal: 14,
-            paddingVertical: 8,
-            borderRadius: 20,
-            backgroundColor: '#0a0d14',
-            borderWidth: 1,
-            borderColor: '#10b981',
-            shadowColor: '#10b981',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.35,
-            shadowRadius: 10,
-            opacity: pressed ? 0.85 : 1,
-          })}>
-          <Text style={{ color: '#10b981', fontWeight: '800', fontSize: 13, fontFamily: 'monospace' }}>
-            {'>_' }
-          </Text>
-          <Text style={{ color: '#f8fafc', fontSize: 12, fontWeight: '700' }}>
-            Terminal
-          </Text>
-          <View style={{ paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4, backgroundColor: '#10b98133' }}>
-            <Text style={{ color: '#10b981', fontSize: 10, fontFamily: 'monospace', fontWeight: '800' }}>`</Text>
-          </View>
-        </Pressable>
-      )}
+      {/* Unified Luxury Floating Action Dock (Terminal + Copilot) */}
+      <FloatingActionDock
+        onOpenTerminal={() => setIsTerminalOpen(true)}
+        onToggleCopilot={() => setIsCopilotOpen((prev) => !prev)}
+        isCopilotOpen={isCopilotOpen}
+      />
 
-      <AICopilot />
+      <AICopilot
+        isOpen={isCopilotOpen}
+        onClose={() => setIsCopilotOpen(false)}
+        hideDefaultTrigger={true}
+      />
 
       <DeveloperTerminal
         isOpen={isTerminalOpen}
