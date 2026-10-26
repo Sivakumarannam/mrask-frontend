@@ -67,21 +67,8 @@ export function ProjectCard({ p }: { p: Project }) {
             </View>
           </View>
 
-          {/* Row 2: Down Left Side Image View 2, Right Side Description View 2 */}
+          {/* Row 2: Alternating Layout -> Description on Left, Image on Right */}
           <View style={[styles.splitRow, { marginTop: 14 }]}>
-            <Pressable
-              onPress={() => router.push(('/project/' + p.id) as any)}
-              style={[styles.leftImageWrapper, { borderColor: t.border }]}>
-              <Image
-                source={{ uri: images[1].url }}
-                style={styles.showcaseImage}
-                resizeMode="cover"
-              />
-              <View style={styles.imageOverlayBadge}>
-                <Text style={styles.overlayBadgeText}>🖼️ View 2 Image (Click to Expand)</Text>
-              </View>
-            </Pressable>
-
             <View style={[styles.rightDescCol, { backgroundColor: t.card, borderColor: t.border }]}>
               <View style={styles.badgePillRow}>
                 <Text style={[styles.viewPill, { color: '#10B981', borderColor: '#10B981' }]}>
@@ -95,6 +82,19 @@ export function ProjectCard({ p }: { p: Project }) {
                 {images[1].technicalDetails}
               </Text>
             </View>
+
+            <Pressable
+              onPress={() => router.push(('/project/' + p.id) as any)}
+              style={[styles.leftImageWrapper, { borderColor: t.border }]}>
+              <Image
+                source={{ uri: images[1].url }}
+                style={styles.showcaseImage}
+                resizeMode="cover"
+              />
+              <View style={styles.imageOverlayBadge}>
+                <Text style={styles.overlayBadgeText}>🖼️ View 2 Image (Click to Expand)</Text>
+              </View>
+            </Pressable>
           </View>
         </View>
       ) : null}

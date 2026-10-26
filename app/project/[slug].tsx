@@ -145,19 +145,8 @@ export default function ProjectDetail() {
                     </View>
                   </View>
 
-                  {/* Row 2: Down Left Side Image View 2, Right Side Description View 2 */}
+                  {/* Row 2: Alternating Layout -> Description on Left, Image on Right */}
                   <View style={[styles.detailSplitRow, isMobile && styles.detailSplitRowStacked]}>
-                    <View style={[styles.detailLeftImageWrapper, { borderColor: t.border }]}>
-                      <Image
-                        source={{ uri: img2.url }}
-                        style={styles.detailImage}
-                        resizeMode="cover"
-                      />
-                      <View style={styles.detailBadgeOverlay}>
-                        <Text style={styles.detailBadgeText}>🖼️ VIEW 2 IMAGE (RUNTIME OPERATIONS VIEW)</Text>
-                      </View>
-                    </View>
-
                     <View style={[styles.detailRightDescCol, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
                       <Text style={[styles.detailViewTag, { color: '#10B981' }]}>
                         ⚙️ VIEW 2 DESCRIPTION: AUTONOMOUS RUNTIME & MITIGATION
@@ -168,6 +157,17 @@ export default function ProjectDetail() {
                       <Text style={[styles.detailCaptionBody, { color: t.muted }]}>
                         {img2.technicalDetails}
                       </Text>
+                    </View>
+
+                    <View style={[styles.detailLeftImageWrapper, { borderColor: t.border }]}>
+                      <Image
+                        source={{ uri: img2.url }}
+                        style={styles.detailImage}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.detailBadgeOverlay}>
+                        <Text style={styles.detailBadgeText}>🖼️ VIEW 2 IMAGE (RUNTIME OPERATIONS VIEW)</Text>
+                      </View>
                     </View>
                   </View>
                 </View>
