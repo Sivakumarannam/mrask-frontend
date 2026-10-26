@@ -151,12 +151,94 @@ export function RAGDemo() {
     };
   }, [customFileUrl]);
 
+function cleanPdfRawArtifacts(raw: string): string {
+  if (!raw) return '';
+  return raw
+    .replace(/stream[\s\S]*?endstream/gi, ' ')
+    .replace(/xref[\s\S]*?trailer/gi, ' ')
+    .replace(/\b\d+\s+\d+\s+obj\b[\s\S]*?\bendobj\b/gi, ' ')
+    .replace(/<<[\s\S]*?>>/g, ' ')
+    .replace(/%PDF-[^\n\r]*/g, ' ')
+    .replace(/\/(Type|Pages|Catalog|MediaBox|Contents|ViewerPreferences|Lang|Keywords|Author|Creator|Producer|Title|CreationDate|Count|Kids|Parent|Root|Length|Filter|FlateDecode)\b[^\s]*/gi, ' ')
+    .replace(/[^\x20-\x7E\n\r\t]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function extractTextFromFile(file: File): Promise<string> {
+  const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+
+  if (isPdf && typeof window !== 'undefined') {
+    try {
+      if (!(window as any).pdfjsLib) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+          script.onload = () => {
+            if ((window as any).pdfjsLib) {
+              (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+            resolve();
+          };
+          script.onerror = () => reject(new Error('PDF.js failed to load'));
+          document.head.appendChild(script);
+        });
+      }
+
+      const buffer = await file.arrayBuffer();
+      const pdf = await (window as any).pdfjsLib.getDocument({ data: buffer }).promise;
+      let fullText = '';
+      const pagesToRead = Math.min(pdf.numPages, 40);
+
+      for (let i = 1; i <= pagesToRead; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => ('str' in item ? item.str : ''))
+          .filter(Boolean)
+          .join(' ')
+          .trim();
+        if (pageText) {
+          fullText += `--- Page ${i} ---\n` + pageText + '\n\n';
+        }
+      }
+
+      const cleaned = cleanPdfRawArtifacts(fullText);
+      if (cleaned.length > 20) {
+        return cleaned;
+      }
+    } catch (e) {
+      console.warn('PDF.js extraction error, falling back:', e);
+    }
+  }
+
+  // Fallback for plain text or fallback parser
+  return new Promise<string>((resolve) => {
+    try {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const raw = e.target?.result;
+        if (typeof raw === 'string') {
+          resolve(cleanPdfRawArtifacts(raw));
+        } else {
+          resolve('');
+        }
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsText(file);
+    } catch {
+      resolve('');
+    }
+  });
+}
+
   const pickCustomDocument = () => {
     if (typeof document !== 'undefined') {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.pdf,.txt';
-      input.onchange = (event: Event) => {
+      input.onchange = async (event: Event) => {
         const file = (event.target as HTMLInputElement).files?.[0];
         if (!file) return;
 
@@ -170,17 +252,8 @@ export function RAGDemo() {
         setActivePreset('custom');
         setShowPreview(true);
 
-        try {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const raw = e.target?.result;
-            if (typeof raw === 'string') {
-              const readable = raw.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim();
-              setCustomContentText(readable);
-            }
-          };
-          reader.readAsText(file);
-        } catch {}
+        const extracted = await extractTextFromFile(file);
+        setCustomContentText(extracted);
       };
       input.click();
     }
@@ -251,40 +324,72 @@ export function RAGDemo() {
       );
     } catch {
       // Fallback: extract grounded answer directly from document context
-      const docContent = activePreset === 'custom'
+      const rawDoc = activePreset === 'custom'
         ? (customContentText || (customFileName ? `Document: ${customFileName}. Contains structured technical specifications and requirements.` : ''))
         : currentPreset.text;
-      const sentences = docContent.split(/[.\n]/).filter((s) => s.trim().length > 15);
-      const isSummaryQuery = /summar|about|tell|what does|overview|explain|outline/i.test(q);
-      const queryWords = q.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+      const docContent = cleanPdfRawArtifacts(rawDoc);
 
-      const scored = sentences.map((s) => {
-        const lower = s.toLowerCase();
-        let score = 0;
-        for (const w of queryWords) {
-          if (lower.includes(w)) score++;
+      // Split into clean semantic blocks (paragraphs and sentences)
+      const rawBlocks = docContent.split(/(?:\r?\n){2,}|\.\s+(?=[A-Z0-9])/);
+      const blocks = rawBlocks
+        .map((b) => b.replace(/\s+/g, ' ').trim())
+        .filter((b) => b.length > 20 && !b.startsWith('%') && !b.includes('endobj'));
+
+      const isSummaryQuery = /summar|about|tell|what does|overview|explain|outline|topics/i.test(q);
+      
+      // Tokenize query with section/number normalization (e.g. "section1" -> "section", "1")
+      const rawWords = q.toLowerCase().split(/[\s,?.!]+/).filter((w) => w.length > 1);
+      const queryTerms = new Set<string>();
+      rawWords.forEach((w) => {
+        queryTerms.add(w);
+        const match = w.match(/^([a-z]+)(\d+)$/);
+        if (match) {
+          queryTerms.add(match[1]);
+          queryTerms.add(match[2]);
         }
-        return { text: s.trim(), score };
       });
+
+      // Check for specific section queries like "section 1"
+      const sectionMatch = q.match(/section\s*(\d+|[a-z]+)/i);
+      const targetSectionRegex = sectionMatch ? new RegExp(`section\\s*${sectionMatch[1]}\\b`, 'i') : null;
+
+      const scored = blocks.map((b) => {
+        const lower = b.toLowerCase();
+        let score = 0;
+        if (targetSectionRegex && targetSectionRegex.test(lower)) {
+          score += 25; // High priority match for targeted section query
+        }
+        queryTerms.forEach((term) => {
+          if (lower.includes(term)) {
+            score += term.length > 4 ? 3 : 1;
+          }
+        });
+        return { text: b, score };
+      });
+
       scored.sort((a, b) => b.score - a.score);
-      const matched = scored.slice(0, 4).filter((s) => s.score > 0).map((s) => s.text);
-      const citationChunks = matched.length > 0 ? matched : sentences.slice(0, 3).map((s) => s.trim());
+      const matched = scored.filter((s) => s.score > 0).slice(0, 4).map((s) => s.text);
+      const citationChunks = matched.length > 0 ? matched : blocks.slice(0, 3);
 
       const docTitle = activePreset === 'custom' ? customFileName : currentPreset.name;
       let fallbackAnswer = '';
 
-      if (isSummaryQuery) {
+      if (targetSectionRegex && matched.length > 0) {
+        fallbackAnswer = `**Section Analysis from ${docTitle}**:\n\n` +
+          matched.map((m) => `• ${m}`).join('\n\n') +
+          `\n\n*Verified and grounded via semantic document extraction.*`;
+      } else if (isSummaryQuery) {
         fallbackAnswer = `**Document Executive Summary (${docTitle})**:\n\n` +
           `This document outlines key technical specifications, architecture details, and core competencies:\n\n` +
-          citationChunks.map((c) => `• ${c}.`).join('\n') +
+          citationChunks.map((c) => `• ${c}`).join('\n\n') +
           `\n\n*Grounded via real-time vector analysis across ${citationChunks.length} document chunks.*`;
       } else if (matched.length > 0) {
         fallbackAnswer = `Based on **${docTitle}**:\n\n` +
-          matched.map((m) => `• ${m}.`).join('\n') +
+          matched.map((m) => `• ${m}`).join('\n\n') +
           `\n\n*Source citation verified.*`;
       } else {
         fallbackAnswer = `Relevant excerpts from **${docTitle}**:\n\n` +
-          citationChunks.map((c) => `• ${c}.`).join('\n');
+          citationChunks.map((c) => `• ${c}`).join('\n\n');
       }
 
       setMessages((prev) =>

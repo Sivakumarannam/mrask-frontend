@@ -320,67 +320,68 @@ export function AICopilot({
     ]);
   };
 
-  return (
-    <View style={{ position: 'relative' }}>
-      {/* Floating Trigger Button */}
-      {!isOpen && !hideDefaultTrigger && (
-        <Pressable
-          onPress={() => setIsOpen(true)}
-          accessibilityLabel="Open AI Co-Pilot chat"
-          style={({ pressed }) => ({
-            position: 'absolute',
-            bottom: 24,
-            right: 24,
-            zIndex: 99999,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 8,
-            backgroundColor: t.navActive,
-            borderColor: t.accent,
-            borderWidth: 1.5,
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderRadius: 30,
-            shadowColor: t.accent,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.35,
-            shadowRadius: 10,
-            elevation: 8,
-            opacity: pressed ? 0.85 : 1,
-          })}>
-          <Text style={{ fontSize: 18 }}>🤖</Text>
-          <Text style={{ color: t.accent, fontWeight: '800', fontSize: 13 }}>
-            Ask Mr.A.S.K AI
-          </Text>
-          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10B981' }} />
-        </Pressable>
-      )}
+  if (!isOpen) {
+    if (hideDefaultTrigger) return null;
+    return (
+      <Pressable
+        onPress={() => setIsOpen(true)}
+        accessibilityLabel="Open AI Co-Pilot chat"
+        style={({ pressed }) => ({
+          position: Platform.OS === 'web' ? ('fixed' as any) : 'absolute',
+          bottom: 24,
+          right: 24,
+          zIndex: 999999,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          backgroundColor: t.navActive,
+          borderColor: t.accent,
+          borderWidth: 1.5,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          borderRadius: 30,
+          shadowColor: t.accent,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.35,
+          shadowRadius: 10,
+          elevation: 8,
+          opacity: pressed ? 0.85 : 1,
+          // @ts-ignore
+          cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+        })}>
+        <Text style={{ fontSize: 18 }}>🤖</Text>
+        <Text style={{ color: t.accent, fontWeight: '800', fontSize: 13 }}>
+          Ask Mr.A.S.K AI
+        </Text>
+        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10B981' }} />
+      </Pressable>
+    );
+  }
 
-      {/* Floating Co-Pilot Window */}
-      {isOpen && (
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 24,
-            right: 24,
-            zIndex: 99999,
-            width: 380,
-            maxWidth: '92%',
-            height: 520,
-            maxHeight: '82%',
-            backgroundColor: t.card,
-            borderColor: t.border,
-            borderWidth: 1,
-            borderRadius: 16,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.5,
-            shadowRadius: 20,
-            elevation: 12,
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
+  return (
+    <View
+      style={{
+        position: Platform.OS === 'web' ? ('fixed' as any) : 'absolute',
+        bottom: 74,
+        right: 22,
+        zIndex: 999999,
+        width: 390,
+        maxWidth: Platform.OS === 'web' ? ('calc(100vw - 32px)' as any) : '92%',
+        height: 520,
+        maxHeight: Platform.OS === 'web' ? ('calc(100vh - 100px)' as any) : '82%',
+        backgroundColor: t.card,
+        borderColor: t.border,
+        borderWidth: 1.5,
+        borderRadius: 18,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 12 },
+        shadowOpacity: 0.55,
+        shadowRadius: 24,
+        elevation: 16,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
           {/* Header */}
           <View
             style={{
@@ -613,7 +614,5 @@ export function AICopilot({
             </Pressable>
           </View>
         </View>
-      )}
-    </View>
   );
 }

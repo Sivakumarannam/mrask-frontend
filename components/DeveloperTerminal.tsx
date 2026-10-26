@@ -270,13 +270,13 @@ Session ID: ${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
   return (
     <View
       style={{
-        position: 'absolute',
+        position: Platform.OS === 'web' ? ('fixed' as any) : 'absolute',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(5, 8, 15, 0.75)',
-        zIndex: 999999,
+        backgroundColor: 'rgba(5, 8, 15, 0.85)',
+        zIndex: 9999999,
         justifyContent: 'center',
         alignItems: 'center',
         padding: isMobile ? 8 : 24,

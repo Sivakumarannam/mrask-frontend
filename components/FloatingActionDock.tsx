@@ -15,20 +15,31 @@ export function FloatingActionDock({
 }: FloatingActionDockProps) {
   const t = useTheme();
 
-  // If Copilot is currently expanded, hide the dock so it doesn't collide
-  if (isCopilotOpen) return null;
-
   return (
-    <View style={[styles.dockContainer, { borderColor: 'rgba(125, 185, 255, 0.24)' }]}>
+    <View
+      style={[
+        styles.dockContainer,
+        {
+          borderColor: isCopilotOpen ? 'rgba(56, 189, 248, 0.6)' : 'rgba(56, 189, 248, 0.35)',
+          backgroundColor: 'rgba(9, 13, 22, 0.95)',
+        },
+      ]}>
       {/* CLI Terminal Action */}
       <Pressable
-        onPress={onOpenTerminal}
+        onPress={() => {
+          onOpenTerminal();
+        }}
+        accessibilityLabel="Open Developer CLI Terminal"
         style={({ pressed }) => [
           styles.actionBtn,
-          { opacity: pressed ? 0.75 : 1 },
+          {
+            opacity: pressed ? 0.75 : 1,
+            // @ts-ignore
+            cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+          },
         ]}>
         <Text style={styles.terminalIcon}>{'>_'}</Text>
-        <Text style={[styles.actionLabel, { color: '#F1F5F9' }]}>Terminal</Text>
+        <Text style={[styles.actionLabel, { color: '#F8FAFC' }]}>Terminal</Text>
         <View style={styles.shortcutBadge}>
           <Text style={styles.shortcutText}>`</Text>
         </View>
@@ -39,14 +50,29 @@ export function FloatingActionDock({
 
       {/* AI Copilot Action */}
       <Pressable
-        onPress={onToggleCopilot}
+        onPress={() => {
+          onToggleCopilot();
+        }}
+        accessibilityLabel="Toggle AI Co-Pilot Assistant"
         style={({ pressed }) => [
           styles.actionBtn,
-          { opacity: pressed ? 0.75 : 1 },
+          {
+            opacity: pressed ? 0.75 : 1,
+            backgroundColor: isCopilotOpen ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
+            // @ts-ignore
+            cursor: Platform.OS === 'web' ? 'pointer' : undefined,
+          },
         ]}>
-        <Text style={{ fontSize: 14 }}>🤖</Text>
-        <Text style={[styles.actionLabel, { color: t.accent }]}>Ask Mr.A.S.K</Text>
-        <View style={styles.livePulseDot} />
+        <Text style={{ fontSize: 15 }}>🤖</Text>
+        <Text style={[styles.actionLabel, { color: isCopilotOpen ? '#38BDF8' : t.accent }]}>
+          Ask Mr.A.S.K
+        </Text>
+        <View
+          style={[
+            styles.livePulseDot,
+            { backgroundColor: isCopilotOpen ? '#38BDF8' : '#10B981' },
+          ]}
+        />
       </Pressable>
     </View>
   );
@@ -54,68 +80,67 @@ export function FloatingActionDock({
 
 const styles = StyleSheet.create({
   dockContainer: {
-    position: 'absolute',
+    position: Platform.OS === 'web' ? ('fixed' as any) : 'absolute',
     bottom: 22,
     right: 22,
-    zIndex: 99998,
+    zIndex: 999998,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(9, 13, 20, 0.90)',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.45,
-    shadowRadius: 16,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 18,
+    elevation: 12,
     // @ts-ignore
     backdropFilter: Platform.OS === 'web' ? 'blur(16px)' : undefined,
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    gap: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 999,
   },
   terminalIcon: {
     color: '#10B981',
     fontWeight: '800',
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: Platform.OS === 'web' ? 'monospace' : undefined,
   },
   actionLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
   shortcutBadge: {
-    backgroundColor: 'rgba(16, 185, 129, 0.16)',
-    paddingHorizontal: 5,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 4,
     borderWidth: 0.5,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: 'rgba(16, 185, 129, 0.4)',
   },
   shortcutText: {
     color: '#10B981',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     fontFamily: Platform.OS === 'web' ? 'monospace' : undefined,
   },
   divider: {
     width: 1,
-    height: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    marginHorizontal: 2,
+    height: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+    marginHorizontal: 4,
   },
   livePulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: '#10B981',
   },
 });

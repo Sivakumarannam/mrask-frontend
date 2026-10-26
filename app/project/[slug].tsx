@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { Pipeline } from '@/components/Pipeline';
 import { ProjectArchitecture } from '@/components/ProjectArchitecture';
@@ -20,15 +20,17 @@ export function generateStaticParams(): { slug: string }[] {
 export default function ProjectDetail() {
   const t = useTheme();
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const { projects, loading } = useProjects();
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const p = projects.find((x) => x.id === slug);
   const githubUrl = p?.github ?? '';
   const demoUrl = p?.demoUrl ?? '';
   const images = p?.images || [];
-  const currentImage = images[selectedImageIndex] || images[0];
+  const img1 = images[0];
+  const img2 = images[1];
 
   return (
     <Screen>
@@ -109,80 +111,65 @@ export default function ProjectDetail() {
             </>
           )}
 
-          {/* Dual High-Resolution Image Gallery */}
-          {images.length > 0 && currentImage ? (
+          {/* Dual High-Resolution 2-Row Architecture Showcase */}
+          {img1 && img2 ? (
             <>
-              <Heading sub="2 high-resolution screenshots explaining real production system operation">
-                Production Architecture & Visual Interface
+              <Heading sub="2 high-resolution production architecture visual interfaces engineered in this project">
+                Production Architecture & Visual Interfaces
               </Heading>
               <Card accent>
-                {/* Image Switcher Tabs */}
-                <View style={styles.imageTabsHeader}>
-                  <Text style={[styles.galleryTitle, { color: t.text }]}>
-                    SCREENSHOT ({selectedImageIndex + 1} OF 2): {currentImage.caption}
-                  </Text>
-                  <View style={styles.tabsRow}>
-                    {images.map((img, idx) => (
-                      <Pressable
-                        key={idx}
-                        onPress={() => setSelectedImageIndex(idx)}
-                        style={[
-                          styles.tabBtn,
-                          {
-                            backgroundColor: selectedImageIndex === idx ? t.accent : t.cardAlt,
-                            borderColor: selectedImageIndex === idx ? t.accent : t.border,
-                          },
-                        ]}>
-                        <Text
-                          style={[
-                            styles.tabBtnText,
-                            { color: selectedImageIndex === idx ? '#05070A' : t.muted },
-                          ]}>
-                          View {idx + 1}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </View>
+                <View style={{ gap: 20 }}>
+                  {/* Row 1: Left Side Image 1, Right Side Description 1 */}
+                  <View style={[styles.detailSplitRow, isMobile && styles.detailSplitRowStacked]}>
+                    <View style={[styles.detailLeftImageWrapper, { borderColor: t.border }]}>
+                      <Image
+                        source={{ uri: img1.url }}
+                        style={styles.detailImage}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.detailBadgeOverlay}>
+                        <Text style={styles.detailBadgeText}>VIEW 01 / ARCHITECTURE</Text>
+                      </View>
+                    </View>
 
-                {/* Primary High-Resolution Image View */}
-                <View style={[styles.mainImageViewer, { borderColor: t.border }]}>
-                  <Image
-                    source={{ uri: currentImage.url }}
-                    style={styles.mainImage}
-                    resizeMode="contain"
-                  />
-                </View>
-
-                {/* Caption & Deep Technical Breakdown */}
-                <View style={[styles.captionCard, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
-                  <Text style={[styles.captionHeader, { color: t.accent }]}>
-                    🔍 How this architecture component operates:
-                  </Text>
-                  <Text style={[styles.captionBody, { color: t.text }]}>
-                    {currentImage.technicalDetails}
-                  </Text>
-                </View>
-
-                {/* Side-by-side Thumbnails to quickly view both */}
-                <View style={styles.thumbnailRow}>
-                  {images.map((img, idx) => (
-                    <Pressable
-                      key={idx}
-                      onPress={() => setSelectedImageIndex(idx)}
-                      style={[
-                        styles.thumbContainer,
-                        {
-                          borderColor: selectedImageIndex === idx ? t.accent : t.border,
-                          backgroundColor: t.cardAlt,
-                        },
-                      ]}>
-                      <Image source={{ uri: img.url }} style={styles.thumbImage} resizeMode="cover" />
-                      <Text style={[styles.thumbCaption, { color: t.muted }]} numberOfLines={1}>
-                        {img.caption}
+                    <View style={[styles.detailRightDescCol, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
+                      <Text style={[styles.detailViewTag, { color: t.accent }]}>
+                        🔍 VIEW 01: SYSTEM TOPOLOGY & INGESTION
                       </Text>
-                    </Pressable>
-                  ))}
+                      <Text style={[styles.detailCaptionTitle, { color: t.text }]}>
+                        {img1.caption}
+                      </Text>
+                      <Text style={[styles.detailCaptionBody, { color: t.muted }]}>
+                        {img1.technicalDetails}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Row 2: Down Left Side View 2 Image, Right Side Description 2 */}
+                  <View style={[styles.detailSplitRow, isMobile && styles.detailSplitRowStacked]}>
+                    <View style={[styles.detailLeftImageWrapper, { borderColor: t.border }]}>
+                      <Image
+                        source={{ uri: img2.url }}
+                        style={styles.detailImage}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.detailBadgeOverlay}>
+                        <Text style={styles.detailBadgeText}>VIEW 02 / AUTOMATION RUNTIME</Text>
+                      </View>
+                    </View>
+
+                    <View style={[styles.detailRightDescCol, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
+                      <Text style={[styles.detailViewTag, { color: '#10B981' }]}>
+                        ⚙️ VIEW 02: AUTONOMOUS RUNTIME & MITIGATION
+                      </Text>
+                      <Text style={[styles.detailCaptionTitle, { color: t.text }]}>
+                        {img2.caption}
+                      </Text>
+                      <Text style={[styles.detailCaptionBody, { color: t.muted }]}>
+                        {img2.technicalDetails}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               </Card>
             </>
@@ -305,80 +292,66 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 16,
   },
-  imageTabsHeader: {
+  detailSplitRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
+    gap: 16,
+    alignItems: 'stretch',
   },
-  galleryTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    flex: 1,
+  detailSplitRowStacked: {
+    flexDirection: 'column',
   },
-  tabsRow: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  tabBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  tabBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  mainImageViewer: {
-    width: '100%',
-    height: 380,
+  detailLeftImageWrapper: {
+    flex: 1.1,
+    minHeight: 240,
     backgroundColor: '#05070A',
     borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
+    position: 'relative',
   },
-  mainImage: {
+  detailImage: {
     width: '100%',
     height: '100%',
+    minHeight: 240,
   },
-  captionCard: {
-    padding: 14,
+  detailBadgeOverlay: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    backgroundColor: 'rgba(5, 7, 10, 0.85)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  detailBadgeText: {
+    color: '#D9E9FF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  detailRightDescCol: {
+    flex: 1.1,
     borderRadius: 12,
     borderWidth: 1,
-    marginTop: 12,
-    gap: 4,
+    padding: 16,
+    justifyContent: 'center',
+    gap: 6,
   },
-  captionHeader: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.4,
-  },
-  captionBody: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  thumbnailRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 14,
-  },
-  thumbContainer: {
-    flex: 1,
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 6,
-    gap: 4,
-  },
-  thumbImage: {
-    width: '100%',
-    height: 90,
-    borderRadius: 6,
-  },
-  thumbCaption: {
+  detailViewTag: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  detailCaptionTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  detailCaptionBody: {
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 4,
   },
 });

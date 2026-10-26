@@ -10,10 +10,8 @@ import { openLink } from '@/lib/links';
 export function ProjectCard({ p }: { p: Project }) {
   const t = useTheme();
   const router = useRouter();
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const images = p.images || [];
-  const currentImage = images[activeImageIndex] || images[0];
 
   return (
     <Card accent>
@@ -30,60 +28,73 @@ export function ProjectCard({ p }: { p: Project }) {
       <Text style={[styles.tagline, { color: t.accent }]}>{p.tagline}</Text>
       <Text style={[styles.summary, { color: t.muted }]}>{p.summary}</Text>
 
-      {/* 2-Image Interactive Gallery Box */}
-      {images.length > 0 && currentImage ? (
-        <View style={[styles.galleryContainer, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
-          {/* Gallery Header & Image Switcher Tabs */}
-          <View style={styles.galleryHeader}>
-            <Text style={[styles.galleryLabel, { color: t.muted }]}>
-              SYSTEM SCREENSHOTS & ARCHITECTURE ({activeImageIndex + 1}/2)
+      {/* 2-Image Showcase: Left Side Image, Right Side Description for Both Views */}
+      {images.length >= 2 ? (
+        <View style={[styles.dualShowcaseBox, { backgroundColor: t.cardAlt, borderColor: t.border }]}>
+          <View style={styles.showcaseHeader}>
+            <Text style={[styles.showcaseLabel, { color: t.accent }]}>
+              📸 PRODUCTION ARCHITECTURE & RUNTIME VISUALS (2 VIEWS)
             </Text>
-            <View style={styles.tabsRow}>
-              {images.map((img, idx) => (
-                <Pressable
-                  key={idx}
-                  onPress={() => setActiveImageIndex(idx)}
-                  style={[
-                    styles.imgTab,
-                    {
-                      backgroundColor: activeImageIndex === idx ? t.accent : t.card,
-                      borderColor: activeImageIndex === idx ? t.accent : t.border,
-                    },
-                  ]}>
-                  <Text
-                    style={[
-                      styles.imgTabText,
-                      { color: activeImageIndex === idx ? '#05070A' : t.muted },
-                    ]}>
-                    View {idx + 1}
-                  </Text>
-                </Pressable>
-              ))}
+          </View>
+
+          {/* Row 1: Left Side Image 1, Right Side Description 1 */}
+          <View style={styles.splitRow}>
+            <Pressable
+              onPress={() => router.push(('/project/' + p.id) as any)}
+              style={[styles.leftImageWrapper, { borderColor: t.border }]}>
+              <Image
+                source={{ uri: images[0].url }}
+                style={styles.showcaseImage}
+                resizeMode="cover"
+              />
+              <View style={styles.imageOverlayBadge}>
+                <Text style={styles.overlayBadgeText}>🔍 View 1: Architecture</Text>
+              </View>
+            </Pressable>
+
+            <View style={[styles.rightDescCol, { backgroundColor: t.card, borderColor: t.border }]}>
+              <View style={styles.badgePillRow}>
+                <Text style={[styles.viewPill, { color: t.accent, borderColor: t.accent }]}>
+                  VIEW 01 / ARCHITECTURE
+                </Text>
+              </View>
+              <Text style={[styles.captionTitle, { color: t.text }]}>
+                {images[0].caption}
+              </Text>
+              <Text style={[styles.captionDetails, { color: t.muted }]}>
+                {images[0].technicalDetails}
+              </Text>
             </View>
           </View>
 
-          {/* Interactive Image Frame */}
-          <Pressable
-            onPress={() => router.push(('/project/' + p.id) as any)}
-            style={styles.imageWrapper}>
-            <Image
-              source={{ uri: currentImage.url }}
-              style={styles.image}
-              resizeMode="cover"
-            />
-            <View style={styles.imageOverlayBadge}>
-              <Text style={styles.overlayBadgeText}>🔍 Click to open full deep-dive</Text>
-            </View>
-          </Pressable>
+          {/* Row 2: Down Left Side View 2 Image, Right Side Description 2 */}
+          <View style={[styles.splitRow, { marginTop: 14 }]}>
+            <Pressable
+              onPress={() => router.push(('/project/' + p.id) as any)}
+              style={[styles.leftImageWrapper, { borderColor: t.border }]}>
+              <Image
+                source={{ uri: images[1].url }}
+                style={styles.showcaseImage}
+                resizeMode="cover"
+              />
+              <View style={styles.imageOverlayBadge}>
+                <Text style={styles.overlayBadgeText}>🔍 View 2: Runtime Operations</Text>
+              </View>
+            </Pressable>
 
-          {/* Image Caption & Technical Breakdown */}
-          <View style={styles.captionBox}>
-            <Text style={[styles.captionTitle, { color: t.text }]}>
-              {currentImage.caption}
-            </Text>
-            <Text style={[styles.captionDetails, { color: t.muted }]}>
-              {currentImage.technicalDetails}
-            </Text>
+            <View style={[styles.rightDescCol, { backgroundColor: t.card, borderColor: t.border }]}>
+              <View style={styles.badgePillRow}>
+                <Text style={[styles.viewPill, { color: '#10B981', borderColor: '#10B981' }]}>
+                  VIEW 02 / AUTOMATION RUNTIME
+                </Text>
+              </View>
+              <Text style={[styles.captionTitle, { color: t.text }]}>
+                {images[1].caption}
+              </Text>
+              <Text style={[styles.captionDetails, { color: t.muted }]}>
+                {images[1].technicalDetails}
+              </Text>
+            </View>
           </View>
         </View>
       ) : null}
@@ -157,58 +168,46 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     marginTop: 8,
   },
-  galleryContainer: {
+  dualShowcaseBox: {
     borderRadius: 14,
     borderWidth: 1,
-    padding: 12,
-    marginTop: 16,
-    marginBottom: 6,
+    padding: 14,
+    marginTop: 18,
+    marginBottom: 8,
     overflow: 'hidden',
   },
-  galleryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-    flexWrap: 'wrap',
-    gap: 8,
+  showcaseHeader: {
+    marginBottom: 12,
   },
-  galleryLabel: {
-    fontSize: 10,
+  showcaseLabel: {
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
   },
-  tabsRow: {
-    flexDirection: 'row',
-    gap: 6,
+  splitRow: {
+    flexDirection: Platform.OS === 'web' ? 'row' : 'column',
+    gap: 14,
+    alignItems: 'stretch',
   },
-  imgTab: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-  },
-  imgTabText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  imageWrapper: {
-    width: '100%',
-    height: 220,
+  leftImageWrapper: {
+    flex: 1,
+    minHeight: 180,
     borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: '#05070A',
+    borderWidth: 1,
     position: 'relative',
   },
-  image: {
+  showcaseImage: {
     width: '100%',
     height: '100%',
+    minHeight: 180,
   },
   imageOverlayBadge: {
     position: 'absolute',
     bottom: 8,
-    right: 8,
-    backgroundColor: 'rgba(5, 7, 10, 0.8)',
+    left: 8,
+    backgroundColor: 'rgba(5, 7, 10, 0.82)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -220,9 +219,26 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
   },
-  captionBox: {
-    marginTop: 10,
-    gap: 3,
+  rightDescCol: {
+    flex: 1.15,
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 12,
+    justifyContent: 'center',
+    gap: 4,
+  },
+  badgePillRow: {
+    marginBottom: 4,
+  },
+  viewPill: {
+    alignSelf: 'flex-start',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    borderWidth: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   captionTitle: {
     fontSize: 13,
@@ -230,7 +246,7 @@ const styles = StyleSheet.create({
   },
   captionDetails: {
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: 18,
   },
   sectionHeading: {
     fontWeight: '800',
