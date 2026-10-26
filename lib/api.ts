@@ -51,9 +51,10 @@ export async function getProjects(): Promise<{ projects: Project[]; source: 'api
     if (!Array.isArray(data) || data.length === 0) {
       return { projects: localProjects, source: 'local' };
     }
-    return {
-      source: 'api',
-      projects: data.map((p) => ({
+
+    const apiMap = new Map<string, Project>();
+    for (const p of data) {
+      apiMap.set(p.slug, {
         id: p.slug,
         title: p.title,
         tagline: p.tagline,
@@ -65,7 +66,22 @@ export async function getProjects(): Promise<{ projects: Project[]; source: 'api
         github: p.github_url,
         demoUrl: p.demo_url || undefined,
         demoKind: p.demo_kind,
-      })),
+      });
+    }
+
+    // Preserve all verified projects in consistent order (never dropping enterprise projects)
+    const merged: Project[] = localProjects.map((lp) => apiMap.get(lp.id) ?? lp);
+
+    // Also include any extra project returned by API that isn't in localProjects
+    for (const [slug, proj] of apiMap) {
+      if (!merged.some((m) => m.id === slug)) {
+        merged.push(proj);
+      }
+    }
+
+    return {
+      source: 'api',
+      projects: merged,
     };
   } catch {
     return { projects: localProjects, source: 'local' };

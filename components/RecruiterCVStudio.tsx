@@ -43,9 +43,9 @@ export function RecruiterCVStudio({
       pdfUrl: '/Siva_Kumar_Annam_Python_Developer.pdf',
       pdfFilename: 'Siva_Kumar_Annam_Python_Developer.pdf',
       summary:
-        'Python Developer with 1.5+ years of hands-on experience building automation scripts, RESTful APIs, and data-processing tools for network monitoring and service assurance platforms at MasterCom Technology Services (Client: Tata Communications Ltd). Skilled in Python, Flask, Perl, Bash, and database migrations (MySQL → PostgreSQL) that reduced manual operational effort by 35%. Built on-premise RAG chatbots using LangChain and Ollama with verified reduction in hallucinations.',
+        'Python Developer with 2+ years of hands-on experience building automation scripts, RESTful APIs, and data-processing tools for network monitoring and service assurance platforms at MasterCom Technology Services (Client: Tata Communications Ltd). Skilled in Python, Django REST Framework, Perl, Bash, and database migrations (MySQL → PostgreSQL) that reduced manual operational effort by 35%. Built on-premise RAG chatbots using LangChain and Ollama with verified reduction in hallucinations.',
       skillsList: [
-        'Python (Strong), Flask, Django REST Framework, Perl, Bash, Shell Scripting',
+        'Python (Strong), Django REST Framework, RESTful API Design, Perl, Bash, Shell Scripting',
         'Database Migrations (MySQL to PostgreSQL), SQL Join Optimization, DBeaver',
         'Generative AI: LangChain, Ollama (Qwen2.5/Llama3), RAG Pipelines, Vector Embeddings, FAISS',
         'APIs & Services: RESTful API Design, JSON Parameter Parsing, Caching & Performance Tuning',
@@ -57,7 +57,7 @@ export function RecruiterCVStudio({
       pdfUrl: '/Siva_Kumar_Annam_DevOps_Cloud.pdf',
       pdfFilename: 'Siva_Kumar_Annam_DevOps_Cloud.pdf',
       summary:
-        'DevOps and Cloud-oriented Engineer with 1.5+ years of experience in automation, infrastructure, and service assurance platforms. Hands-on with Python/Bash automation, AWS core services, Docker, Kubernetes, Terraform IaC, and CI/CD pipelines (GitHub Actions, Jenkins). Designed monitoring solutions that cut manual operational effort by ~30%, and delivered GitOps-style deployment workflows.',
+        'DevOps and Cloud-oriented Engineer with 2+ years of experience in automation, infrastructure, and service assurance platforms. Hands-on with Python/Bash automation, AWS core services, Docker, Kubernetes, Terraform IaC, and CI/CD pipelines (GitHub Actions, Jenkins). Designed monitoring solutions that cut manual operational effort by ~30%, and delivered GitOps-style deployment workflows.',
       skillsList: [
         'Cloud: AWS (EC2, S3, RDS, VPC, IAM, Lambda, CloudWatch, Route 53, Auto Scaling, CodePipeline)',
         'Infrastructure as Code & Config: Terraform (Modules & Backends), Ansible, CloudFormation',
@@ -71,12 +71,12 @@ export function RecruiterCVStudio({
       pdfUrl: '/Siva_Kumar_Annam_Network_Automation.pdf',
       pdfFilename: 'Siva_Kumar_Annam_Network_Automation.pdf',
       summary:
-        'Network Automation and Service Assurance Engineer with 1.5+ years of hands-on experience on SevOne NMS, DISHA (Assure1), and related monitoring platforms for Tata Communications Ltd. Expert in Python and Perl scripting for telemetry collection, reporting, device discovery, and operational tasks — delivering ~30–35% reduction in manual effort. Strong knowledge of SNMP, NetFlow, alert thresholds, and ServiceNow SLA compliance.',
+        'Network Automation and Service Assurance Engineer with 2+ years of hands-on experience on SevOne NMS, DISHA (Assure1), and related monitoring platforms for Tata Communications Ltd. Expert in Python and Perl scripting for telemetry collection, reporting, device discovery, and operational tasks — delivering ~30–35% reduction in manual effort. Strong knowledge of SNMP, NetFlow, alert thresholds, and ServiceNow SLA compliance.',
       skillsList: [
         'Network Platforms: SevOne NMS, PMS, DISHA (Assure1), Spotlight Service Assurance',
         'Protocols & Telemetry: SNMP, NetFlow, Latency/Bandwidth/Packet Loss analysis, Alert Logs',
         'Automation & Scripting: Python, Perl, Bash, Shell scripts for device discovery and automated backups',
-        'Data & APIs: MySQL, PostgreSQL CRUD, Join Rewrites, Flask RESTful APIs',
+        'Data & APIs: MySQL, PostgreSQL CRUD, Join Rewrites, Python RESTful APIs',
         'ITSM & Operations: Root Cause Analysis (RCA), ServiceNow (Incident/SR/CSR), SLA Compliance',
       ],
     },
@@ -85,10 +85,10 @@ export function RecruiterCVStudio({
       pdfUrl: '/Siva_Kumar_Annam_Python_Developer.pdf',
       pdfFilename: 'Siva_Kumar_Annam_Python_Developer.pdf',
       summary:
-        'Full-Stack Developer and AI Systems Engineer with 1.5+ years at MasterCom Technology Services (Client: Tata Communications Ltd). Proficient across the entire stack: Python, Django, Flask, PostgreSQL, React Native (Expo) web & mobile interfaces, and self-hosted RAG LLM workflows with LangChain, Ollama, and FAISS vector indexing.',
+        'Full-Stack Developer and AI Systems Engineer with 2+ years at MasterCom Technology Services (Client: Tata Communications Ltd). Proficient across the entire stack: Python, Django, PostgreSQL, React Native (Expo) web & mobile interfaces, and self-hosted RAG LLM workflows with LangChain, Ollama, and FAISS vector indexing.',
       skillsList: [
         'Full-Stack Web & Mobile: React Native, Expo, TypeScript, Next.js, HTML5/CSS3 Glassmorphism',
-        'Backend & Microservices: Python, Django, DRF, Flask, Celery, REST APIs, Rate Limiting',
+        'Backend & Microservices: Python, Django, DRF, Celery, REST APIs, Rate Limiting',
         'Generative AI & LLMs: RAG Architectures, FAISS, Sentence-Transformers, Ollama, Prompt Engineering',
         'Cloud & Automation: AWS, Docker, Kubernetes, GitHub Actions CI/CD, SevOne NMS',
         'Databases & Systems: PostgreSQL, pgvector, MySQL migrations, Redis, Linux/Unix',
@@ -109,9 +109,9 @@ ${currentRole.summary}
 
 WORK EXPERIENCE:
 Associate Software Engineer | MasterCom Technology Services India Pvt Ltd, Bangalore
-Client: Tata Communications Ltd (Pune) | Nov 2024 – Present (~1.5 years)
+Client: Tata Communications Ltd (Pune) | Nov 2024 – Present (~2 years)
 - Automated network management and reporting tasks via Python/Perl/Shell scripts (~35% manual effort reduction).
-- Engineered Flask RESTful APIs with caching and query optimization, decreasing DB strain by 30%.
+- Engineered Python RESTful APIs with caching and query optimization, decreasing DB strain by 30%.
 - Migrated production database workloads from MySQL to PostgreSQL, decreasing average join execution time by 2.5s.
 - Correlated 5,000+ SNMP metrics and NetFlow flows on SevOne NMS, reducing incident detection time from 45 to 20 mins.
 - Performed Root Cause Analysis (RCA) on Assure1 (DISHA) and Spotlight under strict ServiceNow SLAs.
@@ -121,11 +121,13 @@ ${currentRole.skillsList.map((s) => `- ${s}`).join('\n')}
 
 FLAGSHIP PROJECTS:
 1. SevOne NMS & Service Assurance Automation (Client: Tata Communications Ltd)
-   Technologies: Python, Perl, Bash, Flask, MySQL, PostgreSQL, SevOne NMS, DISHA (Assure1), Linux, ServiceNow
-2. RAG Document Intelligence Studio (LangChain + Ollama + FAISS)
+   Technologies: Python, Perl, Bash, Django REST Framework, MySQL, PostgreSQL, SevOne NMS, DISHA (Assure1), Linux, ServiceNow
+2. MySQL → PostgreSQL Telecom Database Migration (Client: Tata Communications Ltd)
+   Technologies: Python, Perl, PostgreSQL, MySQL, SQL, DBeaver, Linux
+3. RAG Document Intelligence Studio (LangChain + Ollama + FAISS)
    Technologies: Python, LangChain, Ollama (Qwen2.5), FAISS, Sentence-Transformers, PyPDF, SSE Streaming
-3. Real-Time Weather Microservice & Multi-Platform App (Django REST Framework + Open-Meteo + Expo)
-4. GitOps Continuous Deployment Platform (GitHub Actions + Kubernetes + Docker + Terraform)
+4. Real-Time Weather Microservice & Multi-Platform App (Django REST Framework + Open-Meteo + Expo)
+5. GitOps Continuous Deployment Platform (GitHub Actions + Kubernetes + Docker + Terraform)
 
 EDUCATION & CREDENTIALS:
 - B.Tech in Computer Science and Engineering | St. Mary’s Group of Institutions, Guntur, AP (2019 – 2023) | CGPA: 6.8
@@ -340,7 +342,7 @@ EDUCATION & CREDENTIALS:
                     • Automated network monitoring, reporting, and backups via Python, Perl & Shell scripts, achieving a <Text style={{ fontWeight: '700' }}>~35% reduction in manual effort</Text>.
                   </Text>
                   <Text style={{ color: isDark ? '#cbd5e1' : '#334155', fontSize: 12, lineHeight: 17 }}>
-                    • Engineered Flask RESTful APIs with caching and query optimization, reducing database strain by <Text style={{ fontWeight: '700' }}>30%</Text>.
+                    • Engineered Python RESTful APIs with caching and query optimization, reducing database strain by <Text style={{ fontWeight: '700' }}>30%</Text>.
                   </Text>
                   <Text style={{ color: isDark ? '#cbd5e1' : '#334155', fontSize: 12, lineHeight: 17 }}>
                     • Migrated production workloads from MySQL to PostgreSQL, decreasing average join execution time by <Text style={{ fontWeight: '700' }}>2.5 seconds</Text>.

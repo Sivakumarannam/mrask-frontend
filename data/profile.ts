@@ -25,7 +25,7 @@ export const profile = {
     'Cloud, Docker, Kubernetes & CI/CD Pipelines',
   ],
   summary:
-    'Associate Software Engineer with 2+ years of hands-on experience at MasterCom Technology Services (Client: Tata Communications Ltd). Specialized in full-stack web apps, Python automation, Flask/Django REST APIs, database migrations (MySQL to PostgreSQL), and network service assurance on SevOne NMS & DISHA (Assure1) — reducing manual operational effort by ~30–40%. Hands-on builder of RAG AI pipelines with LangChain and Ollama, and cross-platform multi-cloud architectures for web, Android, and iOS.',
+    'Associate Software Engineer with 2+ years of hands-on experience at MasterCom Technology Services (Client: Tata Communications Ltd). Specialized in full-stack web apps, Python automation, Django REST APIs, database migrations (MySQL to PostgreSQL), and network service assurance on SevOne NMS & DISHA (Assure1) — reducing manual operational effort by ~30–40%. Hands-on builder of RAG AI pipelines with LangChain and Ollama, and cross-platform multi-cloud architectures for web, Android, and iOS.',
   education: [
     {
       degree: 'B.Tech in Computer Science and Engineering',
@@ -86,7 +86,7 @@ export const skillGroups: { title: string; items: string[] }[] = [
   },
   {
     title: 'Backend & Web APIs',
-    items: ['Flask', 'Django', 'Django REST Framework', 'RESTful API Design', 'React Native (Expo)', 'Bootstrap', 'HTML5/CSS3'],
+    items: ['Django', 'Django REST Framework', 'RESTful API Design', 'React Native (Expo)', 'Bootstrap', 'HTML5/CSS3'],
   },
   {
     title: 'Generative AI & LLMs',
