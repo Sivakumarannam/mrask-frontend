@@ -43,6 +43,31 @@ export const projects: Project[] = [
     demoKind: '',
   },
   {
+    id: 'telecom-db-migration',
+    title: 'MySQL → PostgreSQL Telecom Database Migration',
+    tagline: 'High-throughput database migration, join optimization & Flask API caching',
+    role: 'Associate Software Engineer (MasterCom / Client: Tata Communications Ltd)',
+    summary:
+      'Engineered and executed mission-critical database migration from legacy MySQL to PostgreSQL for Tata Communications telecom infrastructure. Rewrote complex joins using Python and Perl hashes, optimized query execution times by 2.5 seconds, and designed Flask RESTful APIs with caching that cut database strain by 30%.',
+    highlights: [
+      'Successfully migrated large-scale relational schemas from MySQL to PostgreSQL with zero downtime or data loss',
+      'Optimized multi-table join logic and query structures, cutting average query execution time by 2.5s',
+      'Engineered Flask RESTful APIs with caching and parameter validation, reducing database load by 30%',
+      'Authored automated Python and Perl validation scripts verifying data integrity across all migrated tables',
+    ],
+    stack: ['Python', 'Perl', 'PostgreSQL', 'MySQL', 'Flask', 'SQL', 'DBeaver', 'Linux'],
+    steps: [
+      'Schema analysis & data type mapping',
+      'Python/Perl automated extraction scripts',
+      'PostgreSQL schema creation & indexing',
+      'Complex join rewrites & benchmark testing',
+      'Flask caching layer implementation',
+      'Cutover validation & SLA signoff',
+    ],
+    github: 'https://github.com/Sivakumarannam',
+    demoKind: '',
+  },
+  {
     id: 'rag-chatbot',
     title: 'RAG Document Intelligence Studio',
     tagline: 'Chat with custom PDF/Text documents using local LLMs & FAISS vector search',

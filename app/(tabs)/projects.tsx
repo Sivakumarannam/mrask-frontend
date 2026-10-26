@@ -9,6 +9,7 @@ import { useProjects } from '@/lib/useProjects';
 
 const TECH_PILLS = [
   { id: 'all', label: 'All Projects' },
+  { id: 'enterprise', label: '🏢 Enterprise & Telecom' },
   { id: 'ai', label: '🧠 AI & RAG' },
   { id: 'django', label: '🐍 Python / Django' },
   { id: 'react', label: '⚛️ React Native / Expo' },
@@ -24,7 +25,13 @@ export default function Projects() {
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
       // 1. Tech pill filter
-      if (selectedTech === 'ai') {
+      if (selectedTech === 'enterprise') {
+        const isEnt =
+          p.stack.some((s) => /sevone|telecom|snmp|assure1|nms|migration/i.test(s)) ||
+          /enterprise|telecom|sevone|migration/i.test(p.title) ||
+          /tata|mastercom/i.test(p.tagline);
+        if (!isEnt) return false;
+      } else if (selectedTech === 'ai') {
         const isAi = p.stack.some((s) => /rag|faiss|ollama|transformer|ai|vector/i.test(s)) || /rag|ai/i.test(p.title);
         if (!isAi) return false;
       } else if (selectedTech === 'django') {

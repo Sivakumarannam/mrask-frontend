@@ -2,6 +2,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 
+import { ArchitectureVisualizer } from '@/components/ArchitectureVisualizer';
+import { GitHubLiveActivity } from '@/components/GitHubLiveActivity';
 import { ProjectCard } from '@/components/ProjectCard';
 import { Button, Card, Chip, Heading, Screen, Stat, Typewriter } from '@/components/ui';
 import { gradient, useTheme } from '@/constants/theme';
@@ -53,7 +55,8 @@ export default function Home() {
       </View>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 28 }}>
-        <Stat value={String(projects.length)} label="Solo projects" />
+        <Stat value="2+ yrs" label="Production exp." />
+        <Stat value={String(projects.length)} label="Enterprise & Solo" />
         <Stat value="3" label="Platforms" />
         <Stat value="Python" label="Django + Postgres" />
       </View>
@@ -72,11 +75,21 @@ export default function Home() {
         ))}
       </Card>
 
-      <Heading sub="Built from idea to launch by me, with real product logic behind each one">Featured projects</Heading>
+      <Heading sub="Enterprise and open-source systems built and shipped with real-world impact">Featured projects</Heading>
       {loading ? <ActivityIndicator color={t.accent} style={{ marginVertical: 20 }} /> : null}
       {projects.map((p) => (
         <ProjectCard key={p.id} p={p} />
       ))}
+
+      {/* Live Architecture Visualizer & Packet Tracer */}
+      <View style={{ marginTop: 24 }}>
+        <ArchitectureVisualizer />
+      </View>
+
+      {/* GitHub Live Activity Heatmap & Language Stats */}
+      <View style={{ marginTop: 24 }}>
+        <GitHubLiveActivity />
+      </View>
 
       <LinearGradient
         colors={gradient}
